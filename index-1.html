@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BATTLESHOT</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#080d16;color:#fff;font-family:Arial,sans-serif;overflow:hidden}
+button,input,select{font:inherit}
+button{cursor:pointer;border:0;border-radius:9px;padding:12px 18px;color:#fff;background:#1769e0;font-weight:bold}
+button:hover{filter:brightness(1.15)}
+input,select{width:100%;padding:12px;border-radius:8px;border:1px solid #35445b;background:#101a2b;color:#fff;margin:6px 0 13px}
+#menu{position:fixed;inset:0;z-index:10;display:flex;justify-content:center;align-items:center;padding:18px;background:radial-gradient(circle at 50% 20%,#19365a,transparent 55%),#080d16;overflow-y:auto}
+.panel{width:100%;max-width:460px;padding:25px;border:1px solid #263b58;border-radius:18px;background:rgba(11,20,34,.96);box-shadow:0 20px 80px #0009}
+.logo{text-align:center;font-size:42px;font-weight:1000;letter-spacing:3px;color:#63a8ff;margin-bottom:4px}
+.subtitle{text-align:center;color:#9aabc2;margin-bottom:24px}
+.section{border-top:1px solid #26364b;padding-top:17px;margin-top:17px}
+label{display:block;color:#c8d5e8;font-size:14px}
+.full{width:100%;margin-top:7px}
+.secondary{background:#26364c}
+.status{min-height:22px;color:#ffcc70;font-size:13px;margin-top:12px}
+#createdCode{display:none;margin-top:15px;border:1px solid #2b805a;border-radius:12px;padding:15px;text-align:center;background:#102a24}
+#createdCode strong{display:block;font-size:34px;letter-spacing:6px;color:#70f0b0;margin:9px}
+#game{display:none;position:fixed;inset:0}
+#gameCanvas{display:block;width:100%;height:100%}
+#hud{position:absolute;inset:0;pointer-events:none}
+.hudBox{position:absolute;top:14px;right:14px;background:#07111dd9;border:1px solid #38516c;border-radius:10px;padding:12px 15px;line-height:1.8}
+#playersBox{position:absolute;top:14px;left:14px;background:#07111dd9;border:1px solid #38516c;border-radius:10px;padding:10px 14px;max-width:190px;font-size:13px}
+#message{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);background:#07111ddd;padding:10px 16px;border-radius:10px;text-align:center;white-space:nowrap}
+#leaveButton{position:absolute;bottom:15px;right:15px;pointer-events:auto;background:#a83232}
+#startButton{position:absolute;bottom:15px;left:15px;pointer-events:auto}
+#mobileControls{position:absolute;bottom:85px;left:18px;display:none;pointer-events:auto;direction:ltr}
+.pad{display:grid;grid-template-columns:52px 52px 52px;grid-template-rows:52px 52px;gap:5px}
+.pad button{padding:0;background:#10294acc;border:1px solid #6a9acb;font-size:20px;touch-action:none}
+@media(max-width:700px){#mobileControls{display:block}.logo{font-size:34px}#playersBox{max-width:135px;font-size:11px}#message{font-size:12px;max-width:60%;white-space:normal}}
+</style>
+</head>
+<body>
+<div id="menu">
+  <div class="panel">
+    <div class="logo">BATTLESHOT</div>
+    <div class="subtitle">ONLINE MULTIPLAYER BATTLE ARENA</div>
+
+    <label for="playerName">שם השחקן</label>
+    <input id="playerName" maxlength="18" placeholder="השם שלך">
+
+    <div class="section">
+      <h3>כניסה למשחק</h3>
+      <label for="gameCode">קוד משחק בן 6 ספרות</label>
+      <input id="gameCode" inputmode="numeric" maxlength="6" placeholder="הזן קוד משחק">
+      <button class="full" id="joinButton">כניסה למשחק</button>
+    </div>
+
+    <div class="section">
+      <h3>ניהול שרת</h3>
+      <label for="adminCode">קוד מנהל</label>
+      <input id="adminCode" type="password" placeholder="קוד המנהל הסודי">
+      <label for="roomName">שם המשחק</label>
+      <input id="roomName" maxlength="30" value="משחק חדש">
+      <label for="mode">מצב משחק</label>
+      <select id="mode">
+        <option value="solo">סולו - כל אחד לעצמו</option>
+        <option value="teams">קבוצות - כחול נגד אדום</option>
+      </select>
+      <label for="maxPlayers">מספר שחקנים מרבי</label>
+      <select id="maxPlayers">
+        <option value="10">10 שחקנים</option>
+        <option value="20">20 שחקנים</option>
+        <option value="30" selected>30 שחקנים</option>
+      </select>
+      <button class="full" id="createButton">צור משחק חדש</button>
+      <div id="createdCode">
+        המשחק נוצר בהצלחה!
+        <strong id="newCode"></strong>
+        <button class="secondary full" id="copyCode">העתק קוד משחק</button>
+        <button class="full" id="startGame">התחל משחק</button>
+      </div>
+    </div>
+    <div class="status" id="status">מתחבר לשרת...</div>
+  </div>
+</div>
+
+<div id="game">
+  <canvas id="gameCanvas"></canvas>
+  <div id="hud">
+    <div class="hudBox">
+      <strong>BATTLESHOT</strong><br>
+      חדר: <span id="hudCode">------</span><br>
+      קבוצה: <span id="hudTeam">-</span><br>
+      שחקנים: <span id="hudPlayers">0</span><br>
+      אזור: <span id="hudZone">95</span>
+    </div>
+    <div id="playersBox"><strong>שחקנים במשחק</strong><div id="playerList"></div></div>
+    <div id="message">המתן לתחילת המשחק...</div>
+    <button id="leaveButton">יציאה</button>
+    <button id="startButton" style="display:none">התחל משחק</button>
+    <div id="mobileControls">
+      <div class="pad">
+        <span></span><button data-key="w">▲</button><span></span>
+        <button data-key="a">◀</button><button data-key="s">▼</button><button data-key="d">▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js"}}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+
+const $ = id => document.getElementById(id);
+let socket = null;
+let myId = null;
+let myTeam = null;
+let currentCode = "";
+let currentAdminCode = "";
+let scene, camera, renderer, localPlayer, zoneRing;
+let gameActive = false;
+let remotePlayers = new Map();
+const keys = new Set();
+const mobileKeys = new Set();
+let lastInputSent = 0;
+let animationFrame = 0;
+
+function setStatus(message) { $("status").textContent = message; }
+function setMessage(message) { $("message").textContent = message; }
+
+function connect() {
+  const protocol = location.protocol === "https:" ? "wss:" : "ws:";
+  const url = `${protocol}//${location.host}`;
+  socket = new WebSocket(url);
+
+  socket.addEventListener("open", () => setStatus("מחובר לשרת."));
+  socket.addEventListener("close", () => {
+    setStatus("החיבור לשרת נותק. רענן את האתר כדי להתחבר מחדש.");
+    gameActive = false;
+  });
+  socket.addEventListener("error", () => setStatus("לא ניתן להתחבר לשרת."));
+  socket.addEventListener("message", event => {
+    let msg;
+    try { msg = JSON.parse(event.data); } catch { return; }
+    handleServerMessage(msg);
+  });
+}
+
+function send(data) {
+  if (!socket || socket.readyState !== WebSocket.OPEN) {
+    setStatus("אין חיבור לשרת. המתן להתחברות.");
+    return false;
+  }
+  socket.send(JSON.stringify(data));
+  return true;
+}
+
+function handleServerMessage(msg) {
+  if (msg.type === "error") {
+    setStatus(msg.message || "אירעה שגיאה.");
+    return;
+  }
+
+  if (msg.type === "roomCreated") {
+    currentCode = String(msg.code || "");
+    $("createdCode").style.display = "block";
+    $("newCode").textContent = currentCode;
+    $("gameCode").value = currentCode;
+    setStatus("החדר נוצר. מצטרף אליו כמנהל...");
+    // The server creates a room but does not automatically add its creator.
+    send({
+      type: "joinRoom",
+      gameCode: currentCode,
+      name: $("playerName").value.trim() || "מנהל"
+    });
+    return;
+  }
+
+  if (msg.type === "joined") {
+    myId = msg.playerId;
+    myTeam = msg.team;
+    currentCode = msg.gameCode;
+    $("menu").style.display = "none";
+    $("game").style.display = "block";
+    $("hudCode").textContent = currentCode;
+    $("hudTeam").textContent = myTeam === 1 ? "כחולה" : myTeam === 2 ? "אדומה" : "סולו";
+    $("startButton").style.display = currentAdminCode ? "block" : "none";
+    initGame(0, 0);
+    gameActive = true;
+    setMessage(msg.started ? "המשחק כבר התחיל!" : "ממתינים לתחילת המשחק...");
+    return;
+  }
+
+  if (msg.type === "players") {
+    updatePlayerList(msg.players || []);
+    return;
+  }
+
+  if (msg.type === "gameStarted") {
+    setMessage("המשחק התחיל!");
+    $("startButton").style.display = "none";
+    return;
+  }
+
+  if (msg.type === "gameEnded") {
+    setMessage("המשחק הסתיים!");
+    gameActive = false;
+    return;
+  }
+
+  if (msg.type === "snapshot") {
+    updateWorld(msg);
+  }
+
+  if (msg.type === "left") {
+    setStatus("יצאת מהחדר.");
+  }
+}
+
+$("joinButton").addEventListener("click", () => {
+  const code = $("gameCode").value.trim();
+  if (!/^\d{6}$/.test(code)) {
+    setStatus("יש להזין קוד בן 6 ספרות.");
+    return;
+  }
+  send({
+    type: "joinRoom",
+    name: $("playerName").value.trim() || "שחקן",
+    gameCode: code
+  });
+});
+
+$("createButton").addEventListener("click", () => {
+  const code = $("adminCode").value;
+  if (!code) {
+    setStatus("הזן קוד מנהל.");
+    return;
+  }
+  currentAdminCode = code;
+  send({
+    type: "createRoom",
+    adminCode: code,
+    name: $("roomName").value,
+    mode: $("mode").value,
+    maxPlayers: Number($("maxPlayers").value)
+  });
+});
+
+async function copyCode() {
+  try {
+    await navigator.clipboard.writeText(currentCode);
+    setStatus("קוד המשחק הועתק.");
+  } catch {
+    setStatus("לא ניתן להעתיק אוטומטית. העתק את הקוד שמוצג.");
+  }
+}
+$("copyCode").addEventListener("click", copyCode);
+
+function startMatch() {
+  if (!currentCode || !currentAdminCode) return;
+  send({
+    type: "startRoom",
+    gameCode: currentCode,
+    adminCode: currentAdminCode
+  });
+}
+$("startGame").addEventListener("click", startMatch);
+$("startButton").addEventListener("click", startMatch);
+
+$("leaveButton").addEventListener("click", () => {
+  send({ type: "leaveRoom" });
+  gameActive = false;
+  cancelAnimationFrame(animationFrame);
+  if (renderer) {
+    renderer.dispose();
+    renderer = null;
+  }
+  remotePlayers.clear();
+  $("game").style.display = "none";
+  $("menu").style.display = "flex";
+  $("createdCode").style.display = "none";
+  $("startButton").style.display = "none";
+  myId = null;
+  myTeam = null;
+  currentCode = "";
+  currentAdminCode = "";
+});
+
+function addBuilding(x, z, w, h, d, color) {
+  const building = new THREE.Mesh(
+    new THREE.BoxGeometry(w, h, d),
+    new THREE.MeshStandardMaterial({ color, roughness: 0.9 })
+  );
+  building.position.set(x, h / 2, z);
+  building.castShadow = true;
+  building.receiveShadow = true;
+  scene.add(building);
+
+  const roof = new THREE.Mesh(
+    new THREE.BoxGeometry(w + 0.5, 0.5, d + 0.5),
+    new THREE.MeshStandardMaterial({ color: 0x273447 })
+  );
+  roof.position.set(x, h + 0.25, z);
+  scene.add(roof);
+}
+
+function addTree(x, z) {
+  const trunk = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.3, 0.4, 2, 7),
+    new THREE.MeshStandardMaterial({ color: 0x65452e })
+  );
+  trunk.position.set(x, 1, z);
+  scene.add(trunk);
+
+  const leaves = new THREE.Mesh(
+    new THREE.ConeGeometry(1.8, 4, 8),
+    new THREE.MeshStandardMaterial({ color: 0x24643c })
+  );
+  leaves.position.set(x, 3.5, z);
+  scene.add(leaves);
+}
+
+function createPlayerMesh(team) {
+  const color = team === 1 ? 0x3d8cff : team === 2 ? 0xff5353 : 0xf2c75c;
+  const mesh = new THREE.Mesh(
+    new THREE.CapsuleGeometry(0.55, 1.1, 4, 8),
+    new THREE.MeshStandardMaterial({ color })
+  );
+  mesh.position.y = 1;
+  return mesh;
+}
+
+function initGame(x = 0, z = 0) {
+  cancelAnimationFrame(animationFrame);
+  if (renderer) {
+    renderer.dispose();
+    renderer = null;
+  }
+  remotePlayers.clear();
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x87a9c4);
+  scene.fog = new THREE.Fog(0x87a9c4, 70, 190);
+
+  camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.1, 300);
+  renderer = new THREE.WebGLRenderer({
+    canvas: $("gameCanvas"),
+    antialias: true
+  });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  renderer.setSize(innerWidth, innerHeight);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x405b3d, 2));
+  const sunlight = new THREE.DirectionalLight(0xffffff, 2);
+  sunlight.position.set(30, 70, 20);
+  scene.add(sunlight);
+
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(220, 220),
+    new THREE.MeshStandardMaterial({ color: 0x53794a })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -0.1;
+  scene.add(ground);
+
+  const road = new THREE.Mesh(
+    new THREE.PlaneGeometry(220, 12),
+    new THREE.MeshStandardMaterial({ color: 0x343b43 })
+  );
+  road.rotation.x = -Math.PI / 2;
+  road.position.y = 0.01;
+  scene.add(road);
+
+  for (let i = -100; i < 110; i += 10) {
+    const stripe = new THREE.Mesh(
+      new THREE.BoxGeometry(4, 0.04, 0.25),
+      new THREE.MeshStandardMaterial({ color: 0xe9dfae })
+    );
+    stripe.position.set(i, 0.05, 0);
+    scene.add(stripe);
+  }
+
+  addBuilding(-25, -20, 13, 9, 12, 0xc3aa80);
+  addBuilding(25, -22, 15, 10, 12, 0x9b9c9e);
+  addBuilding(-27, 24, 12, 8, 14, 0x8b9caa);
+  addBuilding(28, 25, 14, 11, 13, 0xc0a17c);
+  addBuilding(0, -45, 24, 12, 16, 0x888f9b);
+  addBuilding(0, 47, 20, 8, 13, 0xa8a18c);
+
+  for (let i = 0; i < 65; i++) {
+    const tx = Math.random() * 190 - 95;
+    const tz = Math.random() * 190 - 95;
+    if (Math.abs(tz) < 9) continue;
+    addTree(tx, tz);
+  }
+
+  zoneRing = new THREE.Mesh(
+    new THREE.RingGeometry(0.98, 1, 96),
+    new THREE.MeshBasicMaterial({ color: 0x268bff, side: THREE.DoubleSide })
+  );
+  zoneRing.rotation.x = -Math.PI / 2;
+  zoneRing.position.y = 0.2;
+  scene.add(zoneRing);
+
+  localPlayer = createPlayerMesh(myTeam);
+  localPlayer.position.set(x, 0, z);
+  scene.add(localPlayer);
+  camera.position.set(x, 9, z + 13);
+  camera.lookAt(x, 1, z);
+  animate();
+}
+
+function updatePlayerList(players) {
+  $("hudPlayers").textContent = players.length;
+  $("playerList").innerHTML = players
+    .slice(0, 8)
+    .map(p => `<div>${escapeHTML(p.name)}</div>`)
+    .join("");
+}
+
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[c]);
+}
+
+function updateWorld(msg) {
+  if (!gameActive || !scene || !localPlayer) return;
+
+  updatePlayerList(msg.players || []);
+  $("hudZone").textContent = Math.round(msg.zoneRadius || 0);
+  const elapsed = Number(msg.elapsed) || 0;
+  const minutes = Math.floor(elapsed / 60000);
+  const seconds = Math.floor((elapsed % 60000) / 1000);
+  setMessage(`זמן משחק: ${minutes}:${String(seconds).padStart(2, "0")}`);
+
+  if (zoneRing) {
+    zoneRing.scale.set(msg.zoneRadius || 1, msg.zoneRadius || 1, 1);
+  }
+
+  const seen = new Set();
+  for (const p of (msg.players || [])) {
+    if (p.id === myId) {
+      localPlayer.position.x += (p.x - localPlayer.position.x) * 0.5;
+      localPlayer.position.z += (p.z - localPlayer.position.z) * 0.5;
+      continue;
+    }
+
+    seen.add(p.id);
+    let mesh = remotePlayers.get(p.id);
+    if (!mesh) {
+      mesh = createPlayerMesh(p.team);
+      scene.add(mesh);
+      remotePlayers.set(p.id, mesh);
+    }
+    mesh.position.x += (p.x - mesh.position.x) * 0.35;
+    mesh.position.z += (p.z - mesh.position.z) * 0.35;
+  }
+
+  for (const [id, mesh] of remotePlayers) {
+    if (!seen.has(id)) {
+      scene.remove(mesh);
+      remotePlayers.delete(id);
+    }
+  }
+}
+
+function movement() {
+  const x =
+    (keys.has("d") || mobileKeys.has("d") ? 1 : 0) -
+    (keys.has("a") || mobileKeys.has("a") ? 1 : 0);
+  const z =
+    (keys.has("s") || mobileKeys.has("s") ? 1 : 0) -
+    (keys.has("w") || mobileKeys.has("w") ? 1 : 0);
+  const length = Math.hypot(x, z) || 1;
+  return { x: x / length, z: z / length };
+}
+
+const keyMap = {
+  arrowup: "w",
+  arrowdown: "s",
+  arrowleft: "a",
+  arrowright: "d",
+  w: "w",
+  a: "a",
+  s: "s",
+  d: "d"
+};
+
+addEventListener("keydown", event => {
+  const key = keyMap[event.key.toLowerCase()];
+  if (key) {
+    event.preventDefault();
+    keys.add(key);
+  }
+});
+
+addEventListener("keyup", event => {
+  const key = keyMap[event.key.toLowerCase()];
+  if (key) keys.delete(key);
+});
+
+document.querySelectorAll("[data-key]").forEach(button => {
+  const key = button.dataset.key;
+  button.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    mobileKeys.add(key);
+    button.setPointerCapture?.(event.pointerId);
+  });
+  ["pointerup", "pointerleave", "pointercancel", "lostpointercapture"].forEach(name => {
+    button.addEventListener(name, () => mobileKeys.delete(key));
+  });
+});
+
+function animate() {
+  if (!gameActive || !renderer) return;
+  animationFrame = requestAnimationFrame(animate);
+
+  const now = performance.now();
+  if (now - lastInputSent >= 50) {
+    const move = movement();
+    send({
+      type: "input",
+      input: {
+        forward: move.z < 0,
+        backward: move.z > 0,
+        left: move.x < 0,
+        right: move.x > 0
+      }
+    });
+    lastInputSent = now;
+  }
+
+  if (localPlayer && camera) {
+    camera.position.x += (localPlayer.position.x - camera.position.x) * 0.08;
+    camera.position.z += (localPlayer.position.z + 13 - camera.position.z) * 0.08;
+    camera.lookAt(localPlayer.position.x, 1, localPlayer.position.z);
+  }
+
+  renderer.render(scene, camera);
+}
+
+addEventListener("resize", () => {
+  if (!camera || !renderer) return;
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+connect();
+</script>
+</body>
+</html>
