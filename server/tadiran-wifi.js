@@ -177,6 +177,7 @@ async function tadiranRequest(tokens, method, endpoint, body) {
   };
   if (body !== undefined) {
     headers["Content-Type"] = "application/json";
+    if (endpoint.includes("/shadow/update/")) headers["x-manufacturer-name"] = "TUYA";
     options.body = JSON.stringify(body);
   }
 
@@ -289,6 +290,9 @@ async function controlDevice(refreshToken, deviceId, command) {
   if (!device) throw new TadiranWifiError("המזגן לא נמצא בחשבון Tadiran המחובר.", 404, "DEVICE_NOT_FOUND");
   if (!device.supported) {
     throw new TadiranWifiError("הדגם הזה עדיין לא נמצא ברשימת הדגמים שנבדקו. לא נשלחה אליו פקודה.", 409, "MODEL_NOT_VERIFIED");
+  }
+  if (Object.prototype.hasOwnProperty.call(updates, "temp_set") && (updates.mode || device.mode) === "AUTO") {
+    throw new TadiranWifiError("בדגמי Tadiran שנבדקו אי אפשר לשנות טמפרטורה במצב אוטומטי. בחרו קירור או חימום תחילה.", 400, "TEMPERATURE_UNAVAILABLE_IN_AUTO");
   }
   await tadiranRequest(tokens, "PUT", "/mobile-app/api/v1/devices/" + encodeURIComponent(deviceId) + "/shadow/update/", Object.entries(updates).map(([name, value]) => ({ name, value })));
   return {
