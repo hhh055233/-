@@ -78,7 +78,7 @@ export default function TadiranWifiPanel() {
       await SecureStore.setItemAsync(TOKEN_KEY, nextToken);
       setRefreshToken(nextToken);
       setDevices(Array.isArray(result.devices) ? result.devices : []);
-      setStatus('החשבון מחובר. הפקודות יופעלו רק בדגמים שנבדקו.');
+      setStatus('החשבון מחובר. הפקודות זמינות רק לדגמים שמופיעים ברשימת תאימות קהילתית; SHALAT עדיין לא נבדקה מול מזגן פיזי.');
     } catch (error) {
       const err = error as Error & { code?: string };
       if (err.code === 'TADIRAN_REAUTH_REQUIRED' || err.code === 'TADIRAN_TOKEN_MISSING') {
@@ -144,7 +144,7 @@ export default function TadiranWifiPanel() {
       setFlowSession(null);
       setOtp('');
       setDevices(Array.isArray(result.devices) ? result.devices : []);
-      setStatus('החשבון חובר בהצלחה. בחרו מזגן מהרשימה.');
+      setStatus('החשבון חובר. בחרו מזגן; התאימות מבוססת על דיווחי קהילה ולא על בדיקה פיזית של SHALAT.');
     } catch (error) {
       Alert.alert('האימות נכשל', (error as Error).message);
     } finally {
@@ -243,7 +243,7 @@ export default function TadiranWifiPanel() {
                 <Text style={s.deviceMeta}>{device.model} • {device.modelId || 'ללא מזהה דגם'}</Text>
                 <Text style={s.deviceMeta}>מצב רשת: {device.online === null ? 'לא ידוע' : device.online ? 'מחובר' : 'לא מקוון'}</Text>
                 <Text style={[s.support, device.supported ? s.supportYes : s.supportNo]}>
-                  {device.supported ? 'דגם שנבדק — שליטה זמינה' : 'הדגם עדיין לא נבדק — שליטה חסומה'}
+                  {device.supported ? 'מופיע ברשימת תאימות קהילתית — טרם נבדק ב-SHALAT' : 'הדגם אינו ברשימת התאימות הקהילתית — השליטה חסומה'}
                 </Text>
               </TouchableOpacity>
               {open && device.supported && <>
@@ -285,7 +285,7 @@ export default function TadiranWifiPanel() {
       </>}
 
       {busy && <View style={s.loading}><ActivityIndicator color="#68dcd1" /><Text style={s.deviceMeta}>מתחבר לשירות…</Text></View>}
-      <Text style={s.footnote}>החיבור משתמש בשירות ענן לא רשמי שנחקר בקוד פתוח. נבדקו רק משפחות דגמים מסוימות; SHALAT לא יכולה להבטיח שליטה בדגם שלא נבדק פיזית.</Text>
+      <Text style={s.footnote}>החיבור משתמש בשירות ענן לא רשמי. רשימת הדגמים מבוססת על אינטגרציה קהילתית; SHALAT עדיין לא אומתה מול מזגן פיזי, ולכן גם דגם שמופיע ברשימה אינו הבטחה שהפקודה תצליח.</Text>
     </View>
   );
 }
