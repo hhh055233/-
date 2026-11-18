@@ -8,6 +8,9 @@ const app = express();
 const PORT = Number(process.env.PORT || 10000);
 const catalogPath = path.join(__dirname, "catalog.json");
 const MIN_IDENTIFICATION_CONFIDENCE = 0.92;
+const IDENTIFY_WINDOW_MS = 60 * 1000;
+const IDENTIFY_MAX_REQUESTS = 12;
+const identifyRequests = new Map();
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -68,8 +71,19 @@ app.get("/api/updates", (_req, res) => {
   res.json({ version: catalog.version, updatedAt: catalog.updatedAt, updates: Array.isArray(catalog.updates) ? catalog.updates : [] });
 });
 
-app.post("/api/identify", upload.single("photo"), async (req, res) => {
-  if (!req.file) {
+app.post("/api/identify", (req, res, next) => {
+  const now = Date.now();
+  const key = req.ip || req.socket.remoteAddress || "unknown";
+  const current = identifyRequests.get(key) || { startedAt: now, count: 0 };
+  if (now - current.startedAt > IDENTIFY_WINDOW_MS) { current.startedAt = now; current.count = 0; }
+  current.count += 1;
+  identifyRequests.set(key, current);
+  if (current.count > IDENTIFY_MAX_REQUESTS) return res.status(429).json({ error: "Too many scan requests. Please wait a minute and try again." });
+  next();
+}, upload.fields([{ name: "photo", maxCount: 1 }, { name: "labelPhoto", maxCount: 1 }]), async (req, res) => {
+  const photoFile = req.files?.photo?.[0];
+  const labelFile = req.files?.labelPhoto?.[0];
+  if (!photoFile) {
     return res.status(400).json({ error: "Please upload one photo using the 'photo' field." });
   }
 
@@ -81,13 +95,14 @@ app.post("/api/identify", upload.single("photo"), async (req, res) => {
     });
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
   const prompt = [
     "Identify the exact air-conditioner indoor unit from this photo.",
     "Return only valid JSON with this exact shape:",
     '{"brand":string|null,"model":string|null,"modelNumber":string|null,"deviceType":"indoor_unit"|"label"|"outdoor_unit"|"remote"|"unknown","confidence":number,"evidence":string[],"needsMorePhotos":boolean}',
     "Never infer or invent a model number. modelNumber must be explicitly readable in the photo; otherwise return null.",
     "If the photo shows only the general appearance and not a readable exact model number, set modelNumber to null and needsMorePhotos to true.",
+    labelFile ? "A second image of the manufacturer model label is also attached. Read the exact model number from that label if legible." : "If the model number is not clearly readable, request a second photo of the manufacturer model label.",
     "confidence must reflect certainty in the exact brand AND exact model number, not just the brand.",
     "If the image is not an air conditioner or its model label, use deviceType unknown.",
     "Do not recommend or invent a remote."
@@ -103,7 +118,8 @@ app.post("/api/identify", upload.single("photo"), async (req, res) => {
         body: JSON.stringify({
           contents: [{ parts: [
             { text: prompt },
-            { inline_data: { mime_type: req.file.mimetype, data: req.file.buffer.toString("base64") } }
+            { inline_data: { mime_type: photoFile.mimetype, data: photoFile.buffer.toString("base64") },
+            ...(labelFile ? [{ text: "Second image: model label." }, { inline_data: { mime_type: labelFile.mimetype, data: labelFile.buffer.toString("base64") } }] : []) }
           ] }],
           generationConfig: { responseMimeType: "application/json", temperature: 0 }
         })
