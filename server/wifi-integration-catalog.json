@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "updatedAt": "2026-11-18",
-  "note": "Research findings. Unofficial community integrations reverse-engineer vendor cloud APIs; SHALAT has not integrated or tested them yet. Exact model and account/app compatibility must be verified before enabling commands.",
+  "note": "Research findings. Unofficial community integrations reverse-engineer vendor cloud APIs; SHALAT has not integrated or tested them yet. Exact model and account/app compatibility must be verified before enabling commands. Spectra is treated as a separate model family/brand label, but may share Tadiran platforms; never assume compatibility across all Spectra models.",
   "providers": [
     {
       "id": "tornado",
@@ -88,6 +88,33 @@
         "integrationLicense": "MIT",
         "limitations": "Unofficial cloud-only integration; only listed models verified by its maintainer; commands may take up to about 90 seconds to propagate."
       }
+    },
+    {
+      "id": "spectra",
+      "brand": "Spectra",
+      "brandAliases": [
+        "ספקטרא",
+        "Spectra",
+        "Spectra S",
+        "Spectra S Plus"
+      ],
+      "connectionType": "model-dependent-ir-or-wifi",
+      "officialApps": [
+        {
+          "name": "MY TADIRAN / EWPE SMART (model-dependent)",
+          "models": "Only where the exact Spectra model's official documentation explicitly confirms Wi-Fi support; no blanket Spectra compatibility is established.",
+          "sourceUrl": "https://www.tadiran-group.co.il/wp-content/uploads/2022/07/51302690121-SPECTRA-S-PLUS-10-35-Operation-Installation-Manual.pdf"
+        }
+      ],
+      "shalatStatus": "not_connected",
+      "apiStatus": "no_spectra_specific_cloud_api_verified",
+      "nextRequirement": "Build and verify exact infrared remote profiles for Spectra models. Treat Wi-Fi as unsupported unless the exact model manual and app identify a supported connection method.",
+      "researchEvidence": "The official Spectra S Plus 10-35 manual marks its Wi-Fi button as inactive. This is model-specific evidence and must not be generalized to every Spectra product. Other Spectra variants require individual manual/app verification.",
+      "sourceUrls": [
+        "https://www.tadiran-group.co.il/wp-content/uploads/2022/07/51302690121-SPECTRA-S-PLUS-10-35-Operation-Installation-Manual.pdf",
+        "https://www.tadiran-group.co.il/wp-content/uploads/2022/07/513026700001-TADIRAN-ALPHA-EXPERT-INVERTER-Operation-Installation-Manual.pdf"
+      ],
+      "communityIntegration": null
     }
   ]
 }
