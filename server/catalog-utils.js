@@ -50,6 +50,7 @@ function readCatalog({ envCatalogJson, envExtraCandidatesJson, catalogPath }) {
       }
       return result;
     };
+    catalog.brands = [...new Set([...(Array.isArray(catalog.brands) ? catalog.brands : []), ...(Array.isArray(extra.brands) ? extra.brands : [])])];
     catalog.researchCandidates = mergeUnique(catalog.researchCandidates, extra.researchCandidates);
     catalog.universalRemoteCodeSets = mergeUnique(catalog.universalRemoteCodeSets, extra.universalRemoteCodeSets);
     catalog.version = Math.max(Number(catalog.version) || 0, Number(extra.version) || 0);
