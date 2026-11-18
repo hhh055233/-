@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator, Animated, Easing } from 'react-native';
+import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, Linking, Animated, Easing } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { StatusBar } from 'expo-status-bar';
 
@@ -15,6 +15,42 @@ type RemoteProfile = {
   [key: string]: unknown;
 };
 
+type WifiIntegration = {
+  id: string;
+  brand: string;
+  brandAliases?: string[];
+  connectionType: string;
+  officialApps: Array<{ name: string; models: string; sourceUrl: string | null }>;
+  shalatStatus: string;
+  apiStatus: string;
+  nextRequirement: string;
+  researchEvidence?: string | null;
+  sourceUrls?: string[];
+  communityIntegration?: {
+    repositoryUrl?: string | null;
+    baseLibraryUrl?: string | null;
+    protocol?: string | null;
+    authentication?: string | null;
+    testedModelEvidence?: string | null;
+    testedModels?: string[];
+    controls?: string[];
+    integrationLicense?: string | null;
+    limitations?: string | null;
+  } | null;
+};
+
+function controlLabel(value: string): string {
+  const labels: Record<string, string> = {
+    power: 'הפעלה וכיבוי',
+    mode: 'מצב פעולה',
+    temperature: 'טמפרטורה',
+    fan_speed: 'מהירות מאוורר',
+    vertical_swing: 'תנודה אנכית',
+    horizontal_swing: 'תנודה אופקית'
+  };
+  return labels[value] || value;
+}
+
 export default function App() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [remote, setRemote] = useState<RemoteProfile | null>(null);
@@ -27,7 +63,7 @@ export default function App() {
   const [catalogVersion, setCatalogVersion] = useState<number | null>(null);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
   const [protocolInventory, setProtocolInventory] = useState<{ familyCount: number; brandCount: number; sourceUpdated?: string } | null>(null);
-  const [wifiIntegrations, setWifiIntegrations] = useState<Array<{ id: string; brand: string; officialApps: Array<{ name: string; models: string; sourceUrl: string }>; shalatStatus: string; apiStatus: string; nextRequirement: string }>>([]);
+  const [wifiIntegrations, setWifiIntegrations] = useState<WifiIntegration[]>([]);
   const [updates, setUpdates] = useState<Array<{ id: string; version: number; title: string; body: string; publishedAt: string; type: string }>>([]);
   const spin = useRef(new Animated.Value(0)).current;
 
@@ -221,13 +257,36 @@ export default function App() {
             <Text style={s.cardTitle}>עדכוני שלטים אוטומטיים</Text>
             <Text style={s.muted}>גרסת מאגר ההתאמות המאומתות: {catalogVersion ?? 'בודק…'}</Text>
             <Text style={s.cardTitle}>חיבורי Wi-Fi למזגנים</Text>
-            {wifiIntegrations.map((integration) => <View key={integration.id} style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#254052' }}>
-              <Text style={s.remoteBrand}>{integration.brand}</Text>
-              <Text style={s.muted}>מצב SHALAT: {integration.shalatStatus === 'connected' ? 'מחובר' : 'טרם חובר'}</Text>
-              {integration.officialApps.map((app) => <Text key={app.name} style={s.muted}>• {app.name}: {app.models}</Text>)}
-              <Text style={s.muted}>נדרש להמשך: {integration.nextRequirement}</Text>
-            </View>)}
-            <Text style={s.muted}>הערה: הצגת אפליקציות היצרן אינה חיבור של SHALAT למזגן. לא נמצא עדיין API ציבורי מאומת שמאפשר ל-SHALAT לשלוח פקודות ישירות.</Text>
+            {wifiIntegrations.map((integration) => {
+              const community = integration.communityIntegration;
+              const apiStatusText = integration.apiStatus === 'unofficial_reverse_engineered_cloud_integration_available'
+                ? 'נמצאה אינטגרציה קהילתית לא רשמית — עדיין לא חוברה או נבדקה בתוך SHALAT'
+                : integration.apiStatus === 'no_spectra_specific_cloud_api_verified'
+                  ? 'לא אומת חיבור Wi-Fi ייעודי לספקטרא; נדרשת בדיקה לפי דגם'
+                  : 'שיטת החיבור עדיין בבדיקה';
+              return <View key={integration.id} style={{ marginTop: 14, paddingTop: 13, borderTopWidth: 1, borderTopColor: '#254052' }}>
+                <Text style={s.remoteBrand}>{integration.brand}</Text>
+                <Text style={s.muted}>מצב SHALAT: {integration.shalatStatus === 'connected' ? 'מחובר' : 'טרם חובר'}</Text>
+                <Text style={s.muted}>{apiStatusText}</Text>
+                {integration.officialApps.map((app) => <View key={app.name} style={{ marginTop: 8 }}>
+                  <Text style={s.muted}>• {app.name}: {app.models}</Text>
+                  {app.sourceUrl ? <TouchableOpacity onPress={() => Linking.openURL(app.sourceUrl!).catch(() => Alert.alert('לא ניתן לפתוח קישור', 'נסו שוב מאוחר יותר.'))}><Text style={{ color: '#69dcd2', textAlign: 'center', marginTop: 5 }}>פתיחת מקור רשמי</Text></TouchableOpacity> : null}
+                </View>)}
+                {community ? <>
+                  {community.protocol ? <Text style={s.muted}>שיטת חיבור שנחקרה: {community.protocol}</Text> : null}
+                  {community.testedModelEvidence ? <Text style={s.muted}>בדיקות קהילה: {community.testedModelEvidence}</Text> : null}
+                  {community.testedModels?.length ? <Text style={s.muted}>דגמים שנבדקו בפרויקט הקהילתי: {community.testedModels.join(' • ')}</Text> : null}
+                  {community.controls?.length ? <Text style={s.muted}>יכולות שמדווחות באינטגרציה: {community.controls.map(controlLabel).join(' • ')}</Text> : null}
+                  {community.authentication ? <Text style={s.muted}>אימות חשבון: {community.authentication}. אין להזין סיסמה או קוד SMS בצ'אט.</Text> : null}
+                  {community.limitations ? <Text style={s.muted}>מגבלות: {community.limitations}</Text> : null}
+                  {community.repositoryUrl ? <TouchableOpacity onPress={() => Linking.openURL(community.repositoryUrl!).catch(() => Alert.alert('לא ניתן לפתוח קישור', 'נסו שוב מאוחר יותר.'))}><Text style={{ color: '#69dcd2', textAlign: 'center', marginTop: 7 }}>קוד האינטגרציה הקהילתית</Text></TouchableOpacity> : null}
+                  {community.baseLibraryUrl ? <TouchableOpacity onPress={() => Linking.openURL(community.baseLibraryUrl!).catch(() => Alert.alert('לא ניתן לפתוח קישור', 'נסו שוב מאוחר יותר.'))}><Text style={{ color: '#69dcd2', textAlign: 'center', marginTop: 5 }}>ספריית הבסיס</Text></TouchableOpacity> : null}
+                </> : null}
+                {integration.researchEvidence ? <Text style={s.muted}>ממצא לדגם מסוים: {integration.researchEvidence}</Text> : null}
+                <Text style={s.muted}>השלב הבא: {integration.nextRequirement}</Text>
+              </View>;
+            })}
+            <Text style={s.muted}>חשוב: חיבורי הקהילה מבוססים על הנדסה לאחור של שירותי ענן, אינם רשמיים, ו-SHALAT עדיין לא שולחת דרכם פקודות. נדרש אימות של הדגם והחשבון לפני הפעלה.</Text>
             <Text style={s.cardTitle}>ספריית פרוטוקולי מזגנים</Text>
             <Text style={s.muted}>{protocolInventory ? `${protocolInventory.familyCount} משפחות פרוטוקול • ${protocolInventory.brandCount} שמות מותגים` : 'טוען נתוני פרוטוקולים…'}</Text>
             <Text style={s.muted}>הספרייה מבוססת על פרוטוקולי IR מתועדים. התאמה לדגם מזגן מסוים עדיין דורשת אימות, והטלפון חייב אמצעי שידור מתאים.</Text>
