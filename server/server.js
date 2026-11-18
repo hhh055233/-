@@ -61,7 +61,7 @@ app.post("/api/identify", upload.single("photo"), async (req, res) => {
     });
   }
 
-  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
   const imageBase64 = req.file.buffer.toString("base64");
   const prompt = [
     "You identify air conditioners from user-provided photos.",
