@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "updatedAt": "2026-11-18",
+  "note": "Compatibility guidance only. These records do not provide a third-party control API or establish that SHALAT can control a device.",
+  "providers": [
+    {
+      "id": "tornado",
+      "brand": "Tornado",
+      "connectionType": "manufacturer-cloud-app",
+      "officialApps": [
+        {
+          "name": "Tornado WIFI 3",
+          "models": "X-series models from 2019 and later",
+          "sourceUrl": "https://play.google.com/store/apps/details?id=com.tornado.tornadowifi3"
+        },
+        {
+          "name": "Tornado WIFI",
+          "models": "WIFI-series models from 2018 and later; exact model eligibility must be checked",
+          "sourceUrl": "https://play.google.com/store/apps/details?id=com.accontrol.tornado.america.hisense"
+        },
+        {
+          "name": "Universal WIFI",
+          "models": "Models with built-in Wi-Fi; exact model eligibility must be checked",
+          "sourceUrl": "https://play.google.com/store/apps/details?id=tornado.top.cn"
+        }
+      ],
+      "shalatStatus": "not_connected",
+      "apiStatus": "no_public_control_api_verified",
+      "nextRequirement": "A documented vendor API or an authorized integration method, plus exact model and account authorization."
+    },
+    {
+      "id": "tadiran",
+      "brand": "Tadiran",
+      "connectionType": "manufacturer-cloud-app-or-accessory",
+      "officialApps": [
+        {
+          "name": "MY TADIRAN",
+          "models": "Tadiran air conditioners; older models may require the Smart IR accessory rather than built-in Wi-Fi",
+          "sourceUrl": "https://www.tadiran-group.co.il/download-app/"
+        },
+        {
+          "name": "TADIRAN IOT",
+          "models": "Supported mini-central, VRF Box and other listed smart products; check the exact system model",
+          "sourceUrl": "https://play.google.com/store/apps/details?id=com.tadiran.mytadiran.prod"
+        },
+        {
+          "name": "EWPE SMART",
+          "models": "Selected older Wi-Fi models listed in Tadiran's Wi-Fi manuals",
+          "sourceUrl": "https://www.tadiran-group.co.il/wp-content/uploads/2022/12/Tadiran_installers_2022-1.pdf"
+        }
+      ],
+      "shalatStatus": "not_connected",
+      "apiStatus": "no_public_control_api_verified",
+      "nextRequirement": "A documented vendor API or an authorized integration method, plus exact model and account authorization."
+    }
+  ]
+}
