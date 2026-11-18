@@ -27,8 +27,25 @@ const upload = multer({
   }
 });
 
+let cachedCatalog = null;
 function getCatalog() {
-  return readCatalog({ envCatalogJson: process.env.SHALAT_CATALOG_JSON, envExtraCandidatesJson: process.env.SHALAT_EXTRA_CANDIDATES_JSON, catalogPath });
+  if (!cachedCatalog) {
+    cachedCatalog = readCatalog({
+      envCatalogJson: process.env.SHALAT_CATALOG_JSON,
+      envExtraCandidatesJson: process.env.SHALAT_EXTRA_CANDIDATES_JSON,
+      catalogPath
+    });
+  }
+  return cachedCatalog;
+}
+try {
+  const startupCatalog = getCatalog();
+  console.log("SHALAT private catalog loaded: version " + startupCatalog.version +
+    ", " + (startupCatalog.researchCandidates || []).length + " research candidates, " +
+    startupCatalog.remotes.filter((remote) => remote.verified === true).length + " verified remote profiles.");
+} catch (error) {
+  console.error("SHALAT private catalog configuration is invalid:", error.message);
+  process.exit(1);
 }
 
 app.get("/", (_req, res) => {
