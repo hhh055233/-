@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "updatedAt": "2026-11-18T16:13:14.000Z",
+  "version": 4,
+  "updatedAt": "2026-11-18T16:14:00.000Z",
   "brands": [
     "Samsung",
     "LG",
@@ -12,7 +12,12 @@
     "Gree",
     "Midea",
     "Hisense",
-    "AUX"
+    "AUX",
+    "Pilot",
+    "Spectra",
+    "Elco",
+    "Belcor",
+    "Sega"
   ],
   "remotes": [],
   "researchCandidates": [
@@ -238,7 +243,8 @@
         "YB1FA",
         "YAC1FB",
         "YAC1FB6",
-        "ZM9401"
+        "ZM9401",
+        "YT1F"
       ],
       "compatibilityClaims": [
         "Names found in local retailer/reference material; some are remote identifiers, not necessarily AC model numbers"
@@ -250,6 +256,58 @@
         "https://dealema.co.il/product-category/מוצרי-חשמל/שלטים/שלטים-למזגנים/page/2/"
       ],
       "notes": "Kept as search aliases only. Do not use these values as an exact indoor-unit model match."
+    },
+    {
+      "id": "amcor-remotes-family",
+      "brand": "Amcor",
+      "remoteModel": "Amcor remote families",
+      "manufacturerPartNumber": null,
+      "remoteModelAliases": [
+        "WH1",
+        "TAC495",
+        "REM1010",
+        "REM1011",
+        "REM1012",
+        "REM1013",
+        "REMAM1",
+        "REM975",
+        "INV"
+      ],
+      "compatibilityClaims": [
+        "Amcor-branded replacement remote families; some sellers also group Amcor and Tadiran"
+      ],
+      "evidenceLevel": "local-specialist-retailer-list",
+      "verified": false,
+      "sources": [
+        "https://israelremotes.com/collections/שלט-למזגן-אמקור-amcor",
+        "https://israelremotes.com/collections/original-ac-remotes/amcor"
+      ],
+      "notes": "Retail catalog identifies these remote variants, but does not provide exact AC model numbers. Must not be matched automatically."
+    },
+    {
+      "id": "family-remotes-family",
+      "brand": "Family",
+      "remoteModel": "Family remote families",
+      "manufacturerPartNumber": null,
+      "remoteModelAliases": [
+        "REM1006",
+        "REMF5",
+        "REMF1",
+        "REM1007",
+        "RG10B/BGEF",
+        "RC FAMILY AIR",
+        "Family Line"
+      ],
+      "compatibilityClaims": [
+        "Family / Family Line replacement remote product families; some listings group Pilot and Family"
+      ],
+      "evidenceLevel": "local-specialist-retailer-list",
+      "verified": false,
+      "sources": [
+        "https://israelremotes.com/collections/שלט-למזגן-פמילי-family",
+        "https://www.ezt.co.il/web/?catid=739015&n=1&pagetype=9"
+      ],
+      "notes": "Remote product names only; exact compatible AC model mapping is not published in the retrieved source."
     }
   ],
   "universalRemoteCodeSets": [
@@ -356,6 +414,38 @@
         "https://d3m9l0v76dty0.cloudfront.net/system/photos/8813020/original/41ae642751fefe849e046737f5781d84.pdf?1645521696="
       ],
       "notes": "Codes are setup positions for a particular universal remote, not IR command codes and not AC model numbers."
+    },
+    {
+      "id": "multi-brand-universal-remote-codes",
+      "remoteFamily": "Universal / Shabbat remote code table",
+      "codes": [
+        {
+          "code": "0021-0033",
+          "brand": "Tadiran"
+        },
+        {
+          "code": "0180, 1235",
+          "brand": "Tornado"
+        },
+        {
+          "code": "4981-4986",
+          "brand": "Electra"
+        },
+        {
+          "code": "3600-3609",
+          "brand": "LG"
+        },
+        {
+          "code": "0090",
+          "brand": "Family"
+        }
+      ],
+      "evidenceLevel": "published-universal-remote-instruction-sheet",
+      "verified": false,
+      "sources": [
+        "https://d3m9l0v76dty0.cloudfront.net/system/photos/11920246/original/c73d157a63880e6ed67385a545aeee05.pdf?1682336844="
+      ],
+      "notes": "These are setup codes for one universal/shabbat remote product, not model numbers, not IR waveform data, and not proof of compatibility with all AC models."
     }
   ],
   "policy": {
@@ -371,6 +461,14 @@
     "sourcePolicy": "Prefer manufacturer documentation; retailer/supplier compatibility claims remain unverified until independently confirmed."
   },
   "updates": [
+    {
+      "id": "v4-amcor-family-research",
+      "version": 4,
+      "title": "נוספו גם אמקור ופמילי",
+      "body": "הרחבנו את מחקר השלטים עם משפחות שלטים לאמקור ולפמילי, כולל REM1010, TAC495, REM1006 ו-REMF1. הנתונים נשארים מועמדים לבדיקה ולא מוצגים כשלטים מאומתים.",
+      "publishedAt": "2026-11-18T16:14:00.000Z",
+      "type": "catalog"
+    },
     {
       "id": "v3-research-catalog",
       "version": 3,
