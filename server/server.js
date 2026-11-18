@@ -17,7 +17,7 @@ app.use(express.json({ limit: "1mb" }));
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 8 * 1024 * 1024, files: 1 },
+  limits: { fileSize: 8 * 1024 * 1024, files: 2 },
   fileFilter: (_req, file, cb) => {
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.mimetype)) {
       return cb(new Error("Unsupported image type. Use JPEG, PNG or WebP."));
