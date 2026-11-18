@@ -74,7 +74,7 @@ export default function App() {
         }
         return;
       }
-      if (result.needsMorePhotos === true && !labelUri) {
+      if ((result.needsMorePhotos === true || result.identification?.needsMorePhotos === true) && !labelUri) {
         setNeedsLabelPhoto(true);
         return;
       }
