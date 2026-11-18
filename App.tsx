@@ -27,6 +27,7 @@ export default function App() {
   const [catalogVersion, setCatalogVersion] = useState<number | null>(null);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
   const [protocolInventory, setProtocolInventory] = useState<{ familyCount: number; brandCount: number; sourceUpdated?: string } | null>(null);
+  const [wifiIntegrations, setWifiIntegrations] = useState<Array<{ id: string; brand: string; officialApps: Array<{ name: string; models: string; sourceUrl: string }>; shalatStatus: string; apiStatus: string; nextRequirement: string }>>([]);
   const [updates, setUpdates] = useState<Array<{ id: string; version: number; title: string; body: string; publishedAt: string; type: string }>>([]);
   const spin = useRef(new Animated.Value(0)).current;
 
@@ -48,6 +49,7 @@ export default function App() {
       setCatalogVersion(Number(data.version) || 0);
       setCatalogUpdatedAt(typeof data.updatedAt === 'string' ? data.updatedAt : null);
       setProtocolInventory(data.protocolInventory && typeof data.protocolInventory.familyCount === 'number' ? data.protocolInventory : null);
+      setWifiIntegrations(Array.isArray(data.wifiIntegrations) ? data.wifiIntegrations : []);
       setUpdates(Array.isArray(data.updates) ? data.updates : []);
       setServerStatus('online');
     } catch { setServerStatus('offline'); }
@@ -218,6 +220,14 @@ export default function App() {
             <Text style={s.updateBadge}>מאגר שלטים</Text>
             <Text style={s.cardTitle}>עדכוני שלטים אוטומטיים</Text>
             <Text style={s.muted}>גרסת מאגר ההתאמות המאומתות: {catalogVersion ?? 'בודק…'}</Text>
+            <Text style={s.cardTitle}>חיבורי Wi-Fi למזגנים</Text>
+            {wifiIntegrations.map((integration) => <View key={integration.id} style={{ marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#254052' }}>
+              <Text style={s.remoteBrand}>{integration.brand}</Text>
+              <Text style={s.muted}>מצב SHALAT: {integration.shalatStatus === 'connected' ? 'מחובר' : 'טרם חובר'}</Text>
+              {integration.officialApps.map((app) => <Text key={app.name} style={s.muted}>• {app.name}: {app.models}</Text>)}
+              <Text style={s.muted}>נדרש להמשך: {integration.nextRequirement}</Text>
+            </View>)}
+            <Text style={s.muted}>הערה: הצגת אפליקציות היצרן אינה חיבור של SHALAT למזגן. לא נמצא עדיין API ציבורי מאומת שמאפשר ל-SHALAT לשלוח פקודות ישירות.</Text>
             <Text style={s.cardTitle}>ספריית פרוטוקולי מזגנים</Text>
             <Text style={s.muted}>{protocolInventory ? `${protocolInventory.familyCount} משפחות פרוטוקול • ${protocolInventory.brandCount} שמות מותגים` : 'טוען נתוני פרוטוקולים…'}</Text>
             <Text style={s.muted}>הספרייה מבוססת על פרוטוקולי IR מתועדים. התאמה לדגם מזגן מסוים עדיין דורשת אימות, והטלפון חייב אמצעי שידור מתאים.</Text>
