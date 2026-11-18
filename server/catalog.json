@@ -1,13 +1,11 @@
 {
-  "version": 1,
+  "version": 2,
   "updatedAt": "2026-11-18T00:00:00.000Z",
-  "brands": [
-    "Samsung",
-    "LG",
-    "Electra",
-    "Tadiran",
-    "Tornado"
-  ],
+  "brands": ["Samsung", "LG", "Electra", "Tadiran", "Tornado"],
   "remotes": [],
-  "note": "No verified model-specific remote profiles have been added yet. Do not use demo layouts as real control codes."
+  "policy": {
+    "publicListing": false,
+    "matchRequires": ["verified=true", "exact brand match", "exact modelNumber match", "identification confidence >= 0.92"],
+    "verification": "A profile may be marked verified only after the exact remote is validated against the exact AC model on real hardware. Never add guessed compatibility."
+  }
 }
