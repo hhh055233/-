@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "updatedAt": "2026-11-18",
-  "note": "Compatibility guidance only. These records do not provide a third-party control API or establish that SHALAT can control a device.",
+  "note": "Research findings. Unofficial community integrations reverse-engineer vendor cloud APIs; SHALAT has not integrated or tested them yet. Exact model and account/app compatibility must be verified before enabling commands.",
   "providers": [
     {
       "id": "tornado",
@@ -25,8 +25,25 @@
         }
       ],
       "shalatStatus": "not_connected",
-      "apiStatus": "no_public_control_api_verified",
-      "nextRequirement": "A documented vendor API or an authorized integration method, plus exact model and account authorization."
+      "apiStatus": "unofficial_reverse_engineered_cloud_integration_available",
+      "nextRequirement": "Implement a secure cloud connector and verify the exact Tornado model/app/account on a real device before enabling control.",
+      "communityIntegration": {
+        "repositoryUrl": "https://github.com/romfreiman/tornado-aircon-custom-component",
+        "baseLibraryUrl": "https://github.com/thewh1teagle/tornado-control",
+        "protocol": "AUX cloud API (community reverse-engineered)",
+        "authentication": "Tornado app account email and password; repository README says region USA was verified with Israel deployments",
+        "testedModelEvidence": "Community discussion reports ISKA-INV-12 X WIFI EU working; another report for ISKA-INV 16 X WIFI EU noted power/mode issues. Not proof for all Tornado models.",
+        "controls": [
+          "power",
+          "mode",
+          "temperature",
+          "fan_speed",
+          "vertical_swing",
+          "horizontal_swing"
+        ],
+        "integrationLicense": "MIT",
+        "limitations": "Unofficial; cloud service can change; some model variants have reported control bugs. Do not enable until SHALAT tests a real unit."
+      }
     },
     {
       "id": "tadiran",
@@ -50,8 +67,27 @@
         }
       ],
       "shalatStatus": "not_connected",
-      "apiStatus": "no_public_control_api_verified",
-      "nextRequirement": "A documented vendor API or an authorized integration method, plus exact model and account authorization."
+      "apiStatus": "unofficial_reverse_engineered_cloud_integration_available",
+      "nextRequirement": "Implement a secure Cognito/SMS login flow and verify one of the listed models on a real device before enabling control.",
+      "communityIntegration": {
+        "repositoryUrl": "https://github.com/rluvaton/ha-my-tadiran",
+        "protocol": "My Tadiran cloud API via AWS Cognito",
+        "authentication": "Phone number registered in My Tadiran plus SMS one-time code; refresh token is used for later sessions",
+        "testedModels": [
+          "Ducted Inverter (hyfpizc9xabvyyl3)",
+          "Ducted slim (tadiran-slim-inv-g)",
+          "Alpha Pro Inverter 140NG / 180NG (alpha-pro-inv-ng)",
+          "Supreme Inverter 370NG (supreme-inv-ng-airow)"
+        ],
+        "controls": [
+          "power",
+          "mode",
+          "temperature",
+          "fan_speed"
+        ],
+        "integrationLicense": "MIT",
+        "limitations": "Unofficial cloud-only integration; only listed models verified by its maintainer; commands may take up to about 90 seconds to propagate."
+      }
     }
   ]
 }
