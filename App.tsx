@@ -23,6 +23,7 @@ export default function App() {
   const [tab, setTab] = useState<'camera' | 'updates'>('camera');
   const [serverStatus, setServerStatus] = useState<'unknown' | 'online' | 'offline'>('unknown');
   const [catalogVersion, setCatalogVersion] = useState<number | null>(null);
+  const [updates, setUpdates] = useState<Array<{ id: string; version: number; title: string; body: string; publishedAt: string; type: string }>>([]);
   const spin = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -40,6 +41,7 @@ export default function App() {
       if (!response.ok) throw new Error('status');
       const data = await response.json();
       setCatalogVersion(Number(data.version) || 0);
+      setUpdates(Array.isArray(data.updates) ? data.updates : []);
       setServerStatus('online');
     } catch { setServerStatus('offline'); }
   }
@@ -157,6 +159,14 @@ export default function App() {
             <Text style={s.muted}>גרסת המאגר: {catalogVersion ?? 'בודק…'}</Text>
             <Text style={s.muted}>מצב חיבור: {serverStatus === 'online' ? 'מחובר' : serverStatus === 'offline' ? 'לא זמין כרגע' : 'בודק…'}</Text>
           </View>
+          {updates.map((item) => <View key={item.id} style={s.updateCard}>
+            <Text style={s.updateBadge}>עדכון • גרסה {item.version}</Text>
+            <Text style={s.cardTitle}>{item.title}</Text>
+            <Text style={s.muted}>{item.body}</Text>
+            <Text style={s.updateDate}>{new Date(item.publishedAt).toLocaleDateString('he-IL')}</Text>
+          </View>)}
+          {serverStatus === 'online' && updates.length === 0 && <Text style={s.muted}>אין עדכונים חדשים כרגע.</Text>}
+          <TouchableOpacity style={s.retryButton} onPress={loadCatalogStatus}><Text style={s.retryText}>בדוק עדכונים</Text></TouchableOpacity>
         </View>}
 
         <View style={s.bottomTabs}>
@@ -201,7 +211,7 @@ const s = StyleSheet.create({
   hintCard: { backgroundColor: '#102438', padding: 17, borderRadius: 16, marginTop: 16 },
   panel: { marginTop: 18 }, sectionTitle: { color: '#f2f7fc', fontSize: 19, fontWeight: '800', textAlign: 'right', marginBottom: 12 },
   updateCard: { backgroundColor: '#102438', borderRadius: 16, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: '#1b3449' },
-  updateBadge: { color: '#65d9ce', fontSize: 10, fontWeight: '800', textAlign: 'right' }, cardTitle: { color: '#f2f7fc', fontSize: 15, fontWeight: '800', textAlign: 'right', marginTop: 8 },
+  updateBadge: { color: '#65d9ce', fontSize: 10, fontWeight: '800', textAlign: 'right' }, updateDate: { color: '#718da1', fontSize: 10, textAlign: 'right', marginTop: 8 }, cardTitle: { color: '#f2f7fc', fontSize: 15, fontWeight: '800', textAlign: 'right', marginTop: 8 },
   bottomTabs: { flexDirection: 'row', backgroundColor: '#0c1c2b', borderRadius: 14, padding: 4, marginTop: 22 },
   tab: { flex: 1, padding: 12, alignItems: 'center', borderRadius: 11 }, activeTab: { backgroundColor: '#1b394d' }, tabText: { color: '#f3fbff', fontWeight: '800' },
   footer: { color: '#61798d', textAlign: 'center', fontSize: 10, marginTop: 22 }
