@@ -63,6 +63,7 @@ export default function App() {
   const [serverStatus, setServerStatus] = useState<'unknown' | 'online' | 'offline'>('unknown');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [catalogVersion, setCatalogVersion] = useState<number | null>(null);
+  const [verifiedRemoteCount, setVerifiedRemoteCount] = useState<number | null>(null);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
   const [protocolInventory, setProtocolInventory] = useState<{ familyCount: number; brandCount: number; sourceUpdated?: string } | null>(null);
   const [wifiIntegrations, setWifiIntegrations] = useState<WifiIntegration[]>([]);
@@ -85,6 +86,7 @@ export default function App() {
       if (!response.ok) throw new Error('status');
       const data = await response.json();
       setCatalogVersion(Number(data.version) || 0);
+      setVerifiedRemoteCount(Number.isInteger(data.verifiedRemoteCount) ? data.verifiedRemoteCount : 0);
       setCatalogUpdatedAt(typeof data.updatedAt === 'string' ? data.updatedAt : null);
       setProtocolInventory(data.protocolInventory && typeof data.protocolInventory.familyCount === 'number' ? data.protocolInventory : null);
       setWifiIntegrations(Array.isArray(data.wifiIntegrations) ? data.wifiIntegrations : []);
@@ -151,32 +153,40 @@ export default function App() {
   }
 
   async function openCamera() {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('נדרשת הרשאת מצלמה', 'כדי לסרוק מזגן, יש לאפשר ל-SHALAT להשתמש במצלמה.');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images'], quality: 0.82, allowsEditing: false
-    });
-    if (!result.canceled && result.assets[0]) {
-      const uri = result.assets[0].uri;
-      setPhoto(uri);
-      setRemote(null);
-      setNotFound(false);
-      setNeedsLabelPhoto(false);
-      await identifyPhoto(uri);
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('נדרשת הרשאת מצלמה', 'כדי לסרוק מזגן, יש לאפשר ל-SHALAT להשתמש במצלמה.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'], quality: 0.82, allowsEditing: false
+      });
+      if (!result.canceled && result.assets[0]) {
+        const uri = result.assets[0].uri;
+        setPhoto(uri);
+        setRemote(null);
+        setNotFound(false);
+        setNeedsLabelPhoto(false);
+        await identifyPhoto(uri);
+      }
+    } catch {
+      Alert.alert('לא הצלחנו לפתוח את המצלמה', 'בדקו שהמצלמה זמינה וש-SHALAT קיבלה הרשאה, ואז נסו שוב.');
     }
   }
 
   async function openLabelCamera() {
-    const permission = await ImagePicker.requestCameraPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('נדרשת הרשאת מצלמה', 'כדי לקרוא את מדבקת הדגם יש לאפשר שימוש במצלמה.');
-      return;
+    try {
+      const permission = await ImagePicker.requestCameraPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('נדרשת הרשאת מצלמה', 'כדי לקרוא את מדבקת הדגם יש לאפשר שימוש במצלמה.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.95, allowsEditing: false });
+      if (!result.canceled && result.assets[0] && photo) await identifyPhoto(photo, result.assets[0].uri);
+    } catch {
+      Alert.alert('לא הצלחנו לפתוח את המצלמה', 'בדקו שהמצלמה זמינה ונסו שוב.');
     }
-    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.95, allowsEditing: false });
-    if (!result.canceled && result.assets[0] && photo) await identifyPhoto(photo, result.assets[0].uri);
   }
 
   // Do not open the camera or request permission automatically on launch.
@@ -252,7 +262,7 @@ export default function App() {
             <TouchableOpacity style={s.retryButton} onPress={openCamera}><Text style={s.retryText}>לנסות שוב</Text></TouchableOpacity>
           </View>}
 
-          {!photo && <View style={s.hintCard}><Text style={s.muted}>המצלמה נפתחת מיד עם הכניסה. צלמו את היחידה הפנימית של המזגן.</Text></View>}
+          {!photo && <View style={s.hintCard}><Text style={s.muted}>כשתהיו מוכנים, לחצו על „צילום מזגן” וצלמו את היחידה הפנימית. אם לא ניתן לקרוא את הדגם, נבקש צילום של מדבקת הדגם.</Text></View>}
           {photo && !isIdentifying && <TouchableOpacity style={s.retryLink} onPress={openCamera}><Text style={s.retryText}>צלמו שוב</Text></TouchableOpacity>}
         </> : <View style={s.panel}>
           <Text style={s.sectionTitle}>מרכז העדכונים</Text>
@@ -260,7 +270,9 @@ export default function App() {
           <View style={s.updateCard}>
             <Text style={s.updateBadge}>מאגר שלטים</Text>
             <Text style={s.cardTitle}>עדכוני שלטים אוטומטיים</Text>
-            <Text style={s.muted}>גרסת מאגר ההתאמות המאומתות: {catalogVersion ?? 'בודק…'}</Text>
+            <Text style={s.muted}>גרסת המאגר: {catalogVersion ?? 'בודק…'}</Text>
+            <Text style={s.muted}>מספר פרופילי שלט מאומתים: {verifiedRemoteCount ?? 'בודק…'}</Text>
+            {verifiedRemoteCount === 0 && <Text style={s.muted}>כרגע אין במאגר שלטים שאומתו מול דגם מזגן פיזי. SHALAT לא תציג התאמה משוערת כשלט עובד.</Text>}
             <Text style={s.cardTitle}>חיבורי Wi-Fi למזגנים</Text>
             {wifiIntegrations.map((integration) => {
               const community = integration.communityIntegration;
