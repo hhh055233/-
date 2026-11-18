@@ -31,6 +31,14 @@ function publicWifiProvider(provider) {
     nextRequirement: typeof provider.nextRequirement === "string" ? provider.nextRequirement : "",
     researchEvidence: typeof provider.researchEvidence === "string" ? provider.researchEvidence : null,
     sourceUrls: Array.isArray(provider.sourceUrls) ? provider.sourceUrls.filter((x) => typeof x === "string") : [],
+    remoteControlReference: provider.remoteControlReference && typeof provider.remoteControlReference === "object"
+      ? {
+          name: typeof provider.remoteControlReference.name === "string" ? provider.remoteControlReference.name : null,
+          partNumber: typeof provider.remoteControlReference.partNumber === "string" ? provider.remoteControlReference.partNumber : null,
+          sourceUrl: typeof provider.remoteControlReference.sourceUrl === "string" ? provider.remoteControlReference.sourceUrl : null,
+          note: typeof provider.remoteControlReference.note === "string" ? provider.remoteControlReference.note : null
+        }
+      : null,
     communityIntegration: community
   };
 }
