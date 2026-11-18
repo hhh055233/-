@@ -7,6 +7,7 @@ const path = require("node:path");
 const app = express();
 const PORT = Number(process.env.PORT || 10000);
 const catalogPath = path.join(__dirname, "catalog.json");
+const MIN_IDENTIFICATION_CONFIDENCE = 0.92;
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -26,25 +27,45 @@ function readCatalog() {
   return JSON.parse(fs.readFileSync(catalogPath, "utf8"));
 }
 
+function normalize(value) {
+  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function isValidIdentification(value) {
+  return value &&
+    typeof value === "object" &&
+    typeof value.brand === "string" &&
+    typeof value.modelNumber === "string" &&
+    typeof value.confidence === "number" &&
+    value.confidence >= MIN_IDENTIFICATION_CONFIDENCE &&
+    ["indoor_unit", "label"].includes(value.deviceType);
+}
+
+function publicRemoteProfile(remote) {
+  // Never send the private catalog record or IR/Wi-Fi control data to the app.
+  return {
+    id: remote.id,
+    brand: remote.brand,
+    model: remote.model,
+    verified: true,
+    imageUrl: remote.imageUrl || null,
+    layout: remote.layout || null
+  };
+}
+
 app.get("/", (_req, res) => {
-  res.json({ name: "SHALAT API", status: "running", docs: ["/health", "/api/catalog", "/api/updates"] });
+  res.json({ name: "SHALAT API", status: "running" });
 });
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "shalat-api", timestamp: new Date().toISOString() });
 });
 
-app.get("/api/catalog", (_req, res) => {
-  res.json(readCatalog());
-});
-
+// The catalog is deliberately private. Only the identification endpoint can
+// retrieve one exact, verified profile after a successful photo scan.
 app.get("/api/updates", (_req, res) => {
   const catalog = readCatalog();
-  res.json({
-    version: catalog.version,
-    updatedAt: catalog.updatedAt,
-    remoteCount: catalog.remotes.length
-  });
+  res.json({ version: catalog.version, updatedAt: catalog.updatedAt });
 });
 
 app.post("/api/identify", upload.single("photo"), async (req, res) => {
@@ -56,19 +77,20 @@ app.post("/api/identify", upload.single("photo"), async (req, res) => {
   if (!apiKey) {
     return res.status(503).json({
       error: "AI recognition is not configured yet.",
-      code: "GEMINI_API_KEY_MISSING",
-      nextStep: "Add GEMINI_API_KEY in the Render service environment variables."
+      code: "GEMINI_API_KEY_MISSING"
     });
   }
 
   const model = process.env.GEMINI_MODEL || "gemini-3.5-flash-lite";
-  const imageBase64 = req.file.buffer.toString("base64");
   const prompt = [
-    "You identify air conditioners from user-provided photos.",
+    "Identify the exact air-conditioner indoor unit from this photo.",
     "Return only valid JSON with this exact shape:",
-    '{"brand":string|null,"model":string|null,"modelNumber":string|null,"deviceType":"indoor_unit"|"outdoor_unit"|"remote"|"label"|"unknown","confidence":number,"candidates":[{"brand":string,"model":string|null,"confidence":number}],"evidence":string[],"needsMorePhotos":boolean}',
-    "Do not guess a model number that is not visible. If uncertain, use null and explain what photo or label is needed.",
-    "Only identify the air conditioner; do not claim that a compatible remote exists."
+    '{"brand":string|null,"model":string|null,"modelNumber":string|null,"deviceType":"indoor_unit"|"label"|"outdoor_unit"|"remote"|"unknown","confidence":number,"evidence":string[],"needsMorePhotos":boolean}',
+    "Never infer or invent a model number. modelNumber must be explicitly readable in the photo; otherwise return null.",
+    "If the photo shows only the general appearance and not a readable exact model number, set modelNumber to null and needsMorePhotos to true.",
+    "confidence must reflect certainty in the exact brand AND exact model number, not just the brand.",
+    "If the image is not an air conditioner or its model label, use deviceType unknown.",
+    "Do not recommend or invent a remote."
   ].join("\n");
 
   try {
@@ -79,13 +101,11 @@ app.post("/api/identify", upload.single("photo"), async (req, res) => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          contents: [{
-            parts: [
-              { text: prompt },
-              { inline_data: { mime_type: req.file.mimetype, data: imageBase64 } }
-            ]
-          }],
-          generationConfig: { responseMimeType: "application/json", temperature: 0.1 }
+          contents: [{ parts: [
+            { text: prompt },
+            { inline_data: { mime_type: req.file.mimetype, data: req.file.buffer.toString("base64") } }
+          ] }],
+          generationConfig: { responseMimeType: "application/json", temperature: 0 }
         })
       }
     );
@@ -93,41 +113,43 @@ app.post("/api/identify", upload.single("photo"), async (req, res) => {
     const payload = await response.json();
     if (!response.ok) {
       console.error("Gemini API error:", response.status, payload?.error?.message || "unknown");
-      return res.status(502).json({
-        error: "The image recognition provider could not complete the request.",
-        providerStatus: response.status
-      });
+      return res.status(502).json({ error: "The image recognition provider could not complete the request." });
     }
 
-    const rawText = payload?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("");
-    if (!rawText) {
-      return res.status(502).json({ error: "The AI returned an empty identification result." });
-    }
+    const rawText = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("");
+    if (!rawText) return res.status(502).json({ error: "The AI returned an empty identification result." });
 
     let identification;
-    try {
-      identification = JSON.parse(rawText);
-    } catch {
-      return res.status(502).json({ error: "The AI response was not valid JSON." });
-    }
+    try { identification = JSON.parse(rawText); }
+    catch { return res.status(502).json({ error: "The AI response was not valid JSON." }); }
 
     const catalog = readCatalog();
-    const normalize = (value) => String(value || "").trim().toLowerCase().replace(/[^a-z0-9א-ת]/g, "");
-    const matchedRemote = catalog.remotes.find((remote) =>
-      normalize(remote.brand) === normalize(identification.brand) &&
-      normalize(remote.model) === normalize(identification.model) &&
-      remote.verified === true
-    ) || null;
+    let matchedRemote = null;
 
-    res.json({
-      identification,
-      matchedRemote,
+    if (isValidIdentification(identification)) {
+      matchedRemote = catalog.remotes.find((remote) =>
+        remote.verified === true &&
+        remote.modelNumber &&
+        normalize(remote.brand) === normalize(identification.brand) &&
+        normalize(remote.modelNumber) === normalize(identification.modelNumber)
+      ) || null;
+    }
+
+    return res.json({
+      identification: {
+        brand: identification.brand || null,
+        model: identification.model || null,
+        modelNumber: identification.modelNumber || null,
+        confidence: Number(identification.confidence) || 0,
+        needsMorePhotos: identification.needsMorePhotos === true
+      },
+      matchedRemote: matchedRemote ? publicRemoteProfile(matchedRemote) : null,
       catalogVersion: catalog.version,
-      controlReady: Boolean(matchedRemote && matchedRemote.verified)
+      controlReady: Boolean(matchedRemote)
     });
   } catch (error) {
     console.error("Identification request failed:", error.message);
-    res.status(500).json({ error: "Image identification failed unexpectedly." });
+    return res.status(500).json({ error: "Image identification failed unexpectedly." });
   }
 });
 
@@ -135,7 +157,7 @@ app.use((error, _req, res, _next) => {
   if (error instanceof multer.MulterError && error.code === "LIMIT_FILE_SIZE") {
     return res.status(413).json({ error: "Image is too large. Maximum size is 8 MB." });
   }
-  res.status(400).json({ error: error.message || "Invalid request." });
+  return res.status(400).json({ error: error.message || "Invalid request." });
 });
 
 app.listen(PORT, "0.0.0.0", () => {
