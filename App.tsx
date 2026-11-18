@@ -25,6 +25,7 @@ export default function App() {
   const [serverStatus, setServerStatus] = useState<'unknown' | 'online' | 'offline'>('unknown');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [catalogVersion, setCatalogVersion] = useState<number | null>(null);
+  const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
   const [updates, setUpdates] = useState<Array<{ id: string; version: number; title: string; body: string; publishedAt: string; type: string }>>([]);
   const spin = useRef(new Animated.Value(0)).current;
 
@@ -44,6 +45,7 @@ export default function App() {
       if (!response.ok) throw new Error('status');
       const data = await response.json();
       setCatalogVersion(Number(data.version) || 0);
+      setCatalogUpdatedAt(typeof data.updatedAt === 'string' ? data.updatedAt : null);
       setUpdates(Array.isArray(data.updates) ? data.updates : []);
       setServerStatus('online');
     } catch { setServerStatus('offline'); }
@@ -214,6 +216,7 @@ export default function App() {
             <Text style={s.updateBadge}>מאגר שלטים</Text>
             <Text style={s.cardTitle}>עדכוני שלטים אוטומטיים</Text>
             <Text style={s.muted}>גרסת המאגר: {catalogVersion ?? 'בודק…'}</Text>
+            {catalogUpdatedAt ? <Text style={s.muted}>עודכן לאחרונה: {new Date(catalogUpdatedAt).toLocaleString('he-IL')}</Text> : null}
             <Text style={s.muted}>מצב חיבור: {serverStatus === 'online' ? 'מחובר' : serverStatus === 'offline' ? 'לא זמין כרגע' : 'בודק…'}</Text>
           </View>
           {updates.map((item) => <View key={item.id} style={s.updateCard}>
@@ -223,6 +226,7 @@ export default function App() {
             <Text style={s.updateDate}>{new Date(item.publishedAt).toLocaleDateString('he-IL')}</Text>
           </View>)}
           {serverStatus === 'online' && updates.length === 0 && <Text style={s.muted}>אין עדכונים חדשים כרגע.</Text>}
+          {serverStatus === 'offline' && <Text style={s.muted}>מרכז העדכונים לא זמין כרגע. בדקו את החיבור ונסו שוב.</Text>}
           <TouchableOpacity style={s.retryButton} onPress={loadCatalogStatus} disabled={isRefreshing}><Text style={s.retryText}>{isRefreshing ? 'בודק עדכונים…' : 'בדוק עדכונים'}</Text></TouchableOpacity>
         </View>}
 
