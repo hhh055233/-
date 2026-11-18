@@ -3,12 +3,12 @@ const cors = require("cors");
 const multer = require("multer");
 const fs = require("node:fs");
 const path = require("node:path");
+const { readCatalog, findMatchedRemote, publicRemoteProfile } = require("./catalog-utils");
 
 const app = express();
 app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT || 10000);
 const catalogPath = path.join(__dirname, "catalog.json");
-const MIN_IDENTIFICATION_CONFIDENCE = 0.92;
 const IDENTIFY_WINDOW_MS = 60 * 1000;
 const IDENTIFY_MAX_REQUESTS = 12;
 const identifyRequests = new Map();
@@ -27,34 +27,8 @@ const upload = multer({
   }
 });
 
-function readCatalog() {
-  return JSON.parse(fs.readFileSync(catalogPath, "utf8"));
-}
-
-function normalize(value) {
-  return String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-function isValidIdentification(value) {
-  return value &&
-    typeof value === "object" &&
-    typeof value.brand === "string" &&
-    typeof value.modelNumber === "string" &&
-    typeof value.confidence === "number" &&
-    value.confidence >= MIN_IDENTIFICATION_CONFIDENCE &&
-    ["indoor_unit", "label"].includes(value.deviceType);
-}
-
-function publicRemoteProfile(remote) {
-  // Never send the private catalog record or IR/Wi-Fi control data to the app.
-  return {
-    id: remote.id,
-    brand: remote.brand,
-    model: remote.model,
-    verified: true,
-    imageUrl: remote.imageUrl || null,
-    layout: remote.layout || null
-  };
+function getCatalog() {
+  return readCatalog({ envCatalogJson: process.env.SHALAT_CATALOG_JSON, catalogPath });
 }
 
 app.get("/", (_req, res) => {
@@ -68,7 +42,7 @@ app.get("/health", (_req, res) => {
 // The catalog is deliberately private. Only the identification endpoint can
 // retrieve one exact, verified profile after a successful photo scan.
 app.get("/api/updates", (_req, res) => {
-  const catalog = readCatalog();
+  const catalog = getCatalog();
   res.json({ version: catalog.version, updatedAt: catalog.updatedAt, updates: Array.isArray(catalog.updates) ? catalog.updates : [] });
 });
 
@@ -79,6 +53,11 @@ app.post("/api/identify", (req, res, next) => {
   if (now - current.startedAt > IDENTIFY_WINDOW_MS) { current.startedAt = now; current.count = 0; }
   current.count += 1;
   identifyRequests.set(key, current);
+  if (identifyRequests.size > 2000) {
+    for (const [ip, entry] of identifyRequests) {
+      if (now - entry.startedAt > IDENTIFY_WINDOW_MS) identifyRequests.delete(ip);
+    }
+  }
   if (current.count > IDENTIFY_MAX_REQUESTS) return res.status(429).json({ error: "Too many scan requests. Please wait a minute and try again." });
   next();
 }, upload.fields([{ name: "photo", maxCount: 1 }, { name: "labelPhoto", maxCount: 1 }]), async (req, res) => {
@@ -115,6 +94,7 @@ app.post("/api/identify", (req, res, next) => {
         encodeURIComponent(model) + ":generateContent?key=" + encodeURIComponent(apiKey),
       {
         method: "POST",
+        signal: AbortSignal.timeout(45000),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [
@@ -140,17 +120,8 @@ app.post("/api/identify", (req, res, next) => {
     try { identification = JSON.parse(rawText); }
     catch { return res.status(502).json({ error: "The AI response was not valid JSON." }); }
 
-    const catalog = readCatalog();
-    let matchedRemote = null;
-
-    if (isValidIdentification(identification)) {
-      matchedRemote = catalog.remotes.find((remote) =>
-        remote.verified === true &&
-        remote.modelNumber &&
-        normalize(remote.brand) === normalize(identification.brand) &&
-        normalize(remote.modelNumber) === normalize(identification.modelNumber)
-      ) || null;
-    }
+    const catalog = getCatalog();
+    const matchedRemote = findMatchedRemote(catalog, identification);
 
     return res.json({
       identification: {
@@ -166,6 +137,9 @@ app.post("/api/identify", (req, res, next) => {
     });
   } catch (error) {
     console.error("Identification request failed:", error.message);
+    if (error.name === "TimeoutError" || error.name === "AbortError") {
+      return res.status(504).json({ error: "Recognition took too long. Please try again." });
+    }
     return res.status(500).json({ error: "Image identification failed unexpectedly." });
   }
 });
