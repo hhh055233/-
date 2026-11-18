@@ -23,6 +23,7 @@ export default function App() {
   const [isIdentifying, setIsIdentifying] = useState(false);
   const [tab, setTab] = useState<'camera' | 'updates'>('camera');
   const [serverStatus, setServerStatus] = useState<'unknown' | 'online' | 'offline'>('unknown');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [catalogVersion, setCatalogVersion] = useState<number | null>(null);
   const [updates, setUpdates] = useState<Array<{ id: string; version: number; title: string; body: string; publishedAt: string; type: string }>>([]);
   const spin = useRef(new Animated.Value(0)).current;
@@ -37,6 +38,7 @@ export default function App() {
   }, [isIdentifying, spin]);
 
   async function loadCatalogStatus() {
+    setIsRefreshing(true);
     try {
       const response = await fetch(`${API_BASE_URL}/api/updates`);
       if (!response.ok) throw new Error('status');
@@ -45,6 +47,7 @@ export default function App() {
       setUpdates(Array.isArray(data.updates) ? data.updates : []);
       setServerStatus('online');
     } catch { setServerStatus('offline'); }
+    finally { setIsRefreshing(false); }
   }
 
   async function identifyPhoto(uri: string, labelUri?: string) {
@@ -64,17 +67,26 @@ export default function App() {
         const labelMime = labelExt === 'png' ? 'image/png' : labelExt === 'webp' ? 'image/webp' : 'image/jpeg';
         body.append('labelPhoto', { uri: labelUri, name: labelName, type: labelMime } as any);
       }
-      const response = await fetch(`${API_BASE_URL}/api/identify`, { method: 'POST', body });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 55000);
+      let response: Response;
+      try {
+        response = await fetch(`${API_BASE_URL}/api/identify`, { method: 'POST', body, signal: controller.signal });
+      } finally { clearTimeout(timeout); }
       const result = await response.json();
       if (!response.ok) {
         if (result.code === 'GEMINI_API_KEY_MISSING') {
           Alert.alert('השירות עדיין בהגדרה', 'שירות הזיהוי עדיין לא הוגדר במלואו.');
+        } else if (response.status === 429) {
+          Alert.alert('יותר מדי סריקות', 'המתינו דקה ונסו שוב.');
+        } else if (response.status === 504) {
+          Alert.alert('הזיהוי התעכב', 'השירות לקח יותר מדי זמן. נסו שוב בעוד רגע.');
         } else {
           Alert.alert('לא הצלחנו לזהות', result.error || 'נסו לצלם שוב תמונה ברורה יותר.');
         }
         return;
       }
-      if ((result.needsMorePhotos === true || result.identification?.needsMorePhotos === true) && !labelUri) {
+      if (result.needsMorePhotos === true || result.identification?.needsMorePhotos === true) {
         setNeedsLabelPhoto(true);
         return;
       }
@@ -84,9 +96,13 @@ export default function App() {
       } else {
         setNotFound(true);
       }
-    } catch {
-      setServerStatus('offline');
-      Alert.alert('אין חיבור לשירות', 'בדקו את האינטרנט ונסו שוב.');
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') {
+        Alert.alert('הזיהוי התעכב', 'לא קיבלנו תשובה בזמן. אפשר לנסות שוב.');
+      } else {
+        setServerStatus('offline');
+        Alert.alert('אין חיבור לשירות', 'בדקו את האינטרנט ונסו שוב.');
+      }
     } finally { setIsIdentifying(false); }
   }
 
@@ -129,7 +145,7 @@ export default function App() {
       <ScrollView contentContainerStyle={s.page}>
         <View style={s.header}>
           <View><Text style={s.eyebrow}>SMART CLIMATE CONTROL</Text><Text style={s.logo}>SHALAT</Text></View>
-          <View style={s.status}><View style={s.dot}/><Text style={s.statusText}>מוכן לסריקה</Text></View>
+          <View style={s.status}><View style={[s.dot, serverStatus === 'offline' && s.dotOffline, serverStatus === 'unknown' && s.dotUnknown]}/><Text style={s.statusText}>{serverStatus === 'online' ? 'השירות מחובר' : serverStatus === 'offline' ? 'אין חיבור לשרת' : 'בודק חיבור'}</Text></View>
         </View>
 
         {tab === 'camera' ? <>
@@ -161,11 +177,11 @@ export default function App() {
             {Array.isArray(remote.layout?.buttons) && <View style={s.remoteButtons}>
               {remote.layout.buttons.map((button, index) => <View key={index} style={s.remoteButton}><Text style={s.remoteButtonText}>{button}</Text></View>)}
             </View>}
-            <Text style={s.smallNote}>השלט מוצג לפי פרופיל מאומת במאגר.</Text>
+            <Text style={s.smallNote}>פרופיל מאומת בלבד. שליטה בפועל תופעל רק לאחר חיבור ובדיקת חומרת IR או Wi-Fi תואמת.</Text>
           </View>}
 
           {needsLabelPhoto && <View style={s.hintCard}>
-            <Text style={s.cardTitle}>כמעט מצאנו — צריך צילום של מדבקת הדגם</Text>
+            <Text style={s.cardTitle}>צריך צילום ברור של מדבקת הדגם</Text>
             <Text style={s.muted}>צלמו את המדבקה שעל היחידה הפנימית. כך נוכל לבדוק התאמה מדויקת ולא לנחש לפי המראה בלבד.</Text>
             <TouchableOpacity style={s.retryButton} onPress={openLabelCamera}><Text style={s.retryText}>צילום מדבקת הדגם</Text></TouchableOpacity>
           </View>}
@@ -173,7 +189,7 @@ export default function App() {
           {notFound && <View style={s.notFoundCard}>
             <Text style={s.sadRemote}>▣</Text>
             <Text style={s.kneel}>╱|\n╱  ╲</Text>
-            <Text style={s.sorry}>אני מצטער ממעמקי נפשי, לא מצאתי לזה שלט 🥺</Text>
+            <Text style={s.sorry}>אני מצטער ממעמקי נפשי, לא מצאתי לזה שלט</Text>
             <Text style={s.muted}>אפשר לנסות צילום נוסף, רצוי גם של מדבקת הדגם שעל המזגן.</Text>
             <TouchableOpacity style={s.retryButton} onPress={openCamera}><Text style={s.retryText}>לנסות שוב</Text></TouchableOpacity>
           </View>}
@@ -195,7 +211,7 @@ export default function App() {
             <Text style={s.updateDate}>{new Date(item.publishedAt).toLocaleDateString('he-IL')}</Text>
           </View>)}
           {serverStatus === 'online' && updates.length === 0 && <Text style={s.muted}>אין עדכונים חדשים כרגע.</Text>}
-          <TouchableOpacity style={s.retryButton} onPress={loadCatalogStatus}><Text style={s.retryText}>בדוק עדכונים</Text></TouchableOpacity>
+          <TouchableOpacity style={s.retryButton} onPress={loadCatalogStatus} disabled={isRefreshing}><Text style={s.retryText}>{isRefreshing ? 'בודק עדכונים…' : 'בדוק עדכונים'}</Text></TouchableOpacity>
         </View>}
 
         <View style={s.bottomTabs}>
@@ -213,7 +229,7 @@ const s = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 22 },
   eyebrow: { color: '#67d9d0', fontSize: 9, letterSpacing: 2, fontWeight: '800' }, logo: { color: '#f4f8ff', fontSize: 27, fontWeight: '900', letterSpacing: 3 },
   status: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#102638', paddingHorizontal: 11, paddingVertical: 8, borderRadius: 20 },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#55d6a5', marginRight: 7 }, statusText: { color: '#c6d8e7', fontSize: 11 },
+  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#55d6a5', marginRight: 7 }, dotOffline: { backgroundColor: '#ff7777' }, dotUnknown: { backgroundColor: '#e8bd62' }, statusText: { color: '#c6d8e7', fontSize: 11 },
   hero: { backgroundColor: '#102438', borderRadius: 24, padding: 20, borderWidth: 1, borderColor: '#1c3b50' },
   heroTag: { color: '#68dcd1', fontSize: 12, fontWeight: '700', textAlign: 'right' },
   heroTitle: { color: '#f4f8ff', fontSize: 34, lineHeight: 41, fontWeight: '900', marginTop: 10, textAlign: 'right' },
