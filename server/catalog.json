@@ -1,6 +1,6 @@
 {
-  "version": 6,
-  "updatedAt": "2026-11-18T18:35:00.000Z",
+  "version": 7,
+  "updatedAt": "2026-11-18T18:48:00.000Z",
   "brands": [
     "Samsung",
     "LG",
@@ -21,6 +21,14 @@
   ],
   "remotes": [],
   "updates": [
+    {
+      "id": "v7-samsung-and-remote-families",
+      "version": 7,
+      "title": "נוספו מועמדים לסמסונג והורחבו משפחות שלטים",
+      "body": "נוספה רשימת דגמי מזגני Samsung שספק ישראלי משייך לשלט חליפי, ונוספו מזהי שלטים נוספים לטורנדו. כל הנתונים נשארים מועמדים לאימות ואינם מוצגים כשלט עובד.",
+      "publishedAt": "2026-11-18T18:48:00.000Z",
+      "type": "catalog"
+    },
     {
       "id": "v6-expanded-israeli-remotes",
       "version": 6,
