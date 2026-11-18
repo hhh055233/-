@@ -26,6 +26,7 @@ type WifiIntegration = {
   nextRequirement: string;
   researchEvidence?: string | null;
   sourceUrls?: string[];
+  remoteControlReference?: { name?: string | null; partNumber?: string | null; sourceUrl?: string | null; note?: string | null } | null;
   communityIntegration?: {
     repositoryUrl?: string | null;
     baseLibraryUrl?: string | null;
@@ -283,6 +284,11 @@ export default function App() {
                   {community.baseLibraryUrl ? <TouchableOpacity onPress={() => Linking.openURL(community.baseLibraryUrl!).catch(() => Alert.alert('לא ניתן לפתוח קישור', 'נסו שוב מאוחר יותר.'))}><Text style={{ color: '#69dcd2', textAlign: 'center', marginTop: 5 }}>ספריית הבסיס</Text></TouchableOpacity> : null}
                 </> : null}
                 {integration.researchEvidence ? <Text style={s.muted}>ממצא לדגם מסוים: {integration.researchEvidence}</Text> : null}
+                {integration.remoteControlReference ? <View style={{ marginTop: 7 }}>
+                  <Text style={s.muted}>שלט מקורי שמופיע אצל היצרן: {integration.remoteControlReference.name || 'שלט'}{integration.remoteControlReference.partNumber ? ` • מק״ט ${integration.remoteControlReference.partNumber}` : ''}</Text>
+                  {integration.remoteControlReference.note ? <Text style={s.muted}>{integration.remoteControlReference.note}</Text> : null}
+                  {integration.remoteControlReference.sourceUrl ? <TouchableOpacity onPress={() => Linking.openURL(integration.remoteControlReference!.sourceUrl!).catch(() => Alert.alert('לא ניתן לפתוח קישור', 'נסו שוב מאוחר יותר.'))}><Text style={{ color: '#69dcd2', textAlign: 'center', marginTop: 5 }}>צפייה באתר היצרן</Text></TouchableOpacity> : null}
+                </View> : null}
                 <Text style={s.muted}>השלב הבא: {integration.nextRequirement}</Text>
               </View>;
             })}
