@@ -65,7 +65,7 @@ app.get("/health", (_req, res) => {
 // retrieve one exact, verified profile after a successful photo scan.
 app.get("/api/updates", (_req, res) => {
   const catalog = readCatalog();
-  res.json({ version: catalog.version, updatedAt: catalog.updatedAt });
+  res.json({ version: catalog.version, updatedAt: catalog.updatedAt, updates: Array.isArray(catalog.updates) ? catalog.updates : [] });
 });
 
 app.post("/api/identify", upload.single("photo"), async (req, res) => {
