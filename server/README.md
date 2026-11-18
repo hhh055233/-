@@ -7,6 +7,10 @@ Private server-side catalog and photo identification API.
 - `GET /health` — health check
 - `GET /api/updates` — catalog version and published update notes (never returns catalog entries)
 - `POST /api/identify` — image identification; required multipart field `photo`, optional `labelPhoto`
+- `POST /api/wifi/tadiran/start` — request a one-time SMS code for a MY TADIRAN account
+- `POST /api/wifi/tadiran/verify` — verify the SMS code and return a device-local refresh token plus the account's device list
+- `POST /api/wifi/tadiran/devices` — refresh the device list using the refresh token
+- `POST /api/wifi/tadiran/control` — send validated commands to a supported Tadiran model
 
 ## Private catalog
 The full research catalog is stored in the private Render environment variable `SHALAT_CATALOG_JSON`. The committed `catalog.json` contains only public update metadata and an empty safe fallback. `researchCandidates` and `universalRemoteCodeSets` are private research notes only; they are not eligible for matching. There is intentionally no public catalog-list endpoint. The app can receive only one sanitized remote profile after a successful scan.
@@ -43,3 +47,8 @@ Run `npm test` in this directory. Tests cover exact model matching, confidence t
 ## Repository visibility note
 
 The active `main` snapshot no longer stores the research candidate list in Git; the live catalog is loaded from private Render environment variables. However, this repository is public and earlier commits may still contain previous catalog snapshots. For complete confidentiality of historical Git data, the repository owner must change the repository visibility to private or rewrite its Git history.
+
+
+## Tadiran Wi-Fi connector
+
+The app performs the initial MY TADIRAN phone/SMS verification through AWS Cognito. The long-lived refresh token is returned to the Android app and stored with Expo SecureStore; SHALAT does not persist account passwords, SMS codes, or refresh tokens on Render. HTTPS is required. The connector only enables commands for model IDs explicitly listed in `server/tadiran-wifi.js` as tested by the referenced community project. Unknown models can appear in the device list but commands are rejected. A successful command response means the cloud API accepted the request, not that the physical AC has already confirmed the change. This is an unofficial, cloud-only integration and is not affiliated with Tadiran.
