@@ -26,6 +26,7 @@ export default function App() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [catalogVersion, setCatalogVersion] = useState<number | null>(null);
   const [catalogUpdatedAt, setCatalogUpdatedAt] = useState<string | null>(null);
+  const [protocolInventory, setProtocolInventory] = useState<{ familyCount: number; brandCount: number; sourceUpdated?: string } | null>(null);
   const [updates, setUpdates] = useState<Array<{ id: string; version: number; title: string; body: string; publishedAt: string; type: string }>>([]);
   const spin = useRef(new Animated.Value(0)).current;
 
@@ -46,6 +47,7 @@ export default function App() {
       const data = await response.json();
       setCatalogVersion(Number(data.version) || 0);
       setCatalogUpdatedAt(typeof data.updatedAt === 'string' ? data.updatedAt : null);
+      setProtocolInventory(data.protocolInventory && typeof data.protocolInventory.familyCount === 'number' ? data.protocolInventory : null);
       setUpdates(Array.isArray(data.updates) ? data.updates : []);
       setServerStatus('online');
     } catch { setServerStatus('offline'); }
@@ -215,7 +217,10 @@ export default function App() {
           <View style={s.updateCard}>
             <Text style={s.updateBadge}>מאגר שלטים</Text>
             <Text style={s.cardTitle}>עדכוני שלטים אוטומטיים</Text>
-            <Text style={s.muted}>גרסת המאגר: {catalogVersion ?? 'בודק…'}</Text>
+            <Text style={s.muted}>גרסת מאגר ההתאמות המאומתות: {catalogVersion ?? 'בודק…'}</Text>
+            <Text style={s.cardTitle}>ספריית פרוטוקולי מזגנים</Text>
+            <Text style={s.muted}>{protocolInventory ? `${protocolInventory.familyCount} משפחות פרוטוקול • ${protocolInventory.brandCount} שמות מותגים` : 'טוען נתוני פרוטוקולים…'}</Text>
+            <Text style={s.muted}>הספרייה מבוססת על פרוטוקולי IR מתועדים. התאמה לדגם מזגן מסוים עדיין דורשת אימות, והטלפון חייב אמצעי שידור מתאים.</Text>
             {catalogUpdatedAt ? <Text style={s.muted}>עודכן לאחרונה: {new Date(catalogUpdatedAt).toLocaleString('he-IL')}</Text> : null}
             <Text style={s.muted}>מצב חיבור: {serverStatus === 'online' ? 'מחובר' : serverStatus === 'offline' ? 'לא זמין כרגע' : 'בודק…'}</Text>
           </View>
