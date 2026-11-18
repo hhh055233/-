@@ -29,12 +29,26 @@ type ApiResult = {
 };
 
 async function postJson(path: string, body: Record<string, unknown>): Promise<ApiResult> {
-  const response = await fetch(API_BASE_URL + path, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  const result = await response.json() as ApiResult;
+  let response: Response;
+  try {
+    response = await fetch(API_BASE_URL + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(30000)
+    });
+  } catch (error) {
+    if (error instanceof Error && (error.name === 'TimeoutError' || error.name === 'AbortError')) {
+      throw new Error('השרת לא הגיב בזמן. ייתכן שהוא מתעורר משינה; המתינו מעט ונסו שוב.');
+    }
+    throw new Error('לא הצלחנו להתחבר לשרת. בדקו את חיבור האינטרנט ונסו שוב.');
+  }
+  let result: ApiResult;
+  try {
+    result = await response.json() as ApiResult;
+  } catch {
+    throw new Error('השרת החזיר תשובה לא תקינה. נסו שוב בעוד רגע.');
+  }
   if (!response.ok) {
     const error = new Error(result.error || 'הבקשה נכשלה') as Error & { code?: string; status?: number };
     error.code = result.code;
