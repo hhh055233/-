@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "SHALAT",
+    "slug": "shalat",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "backgroundColor": "#07111f"
+    },
+    "android": {
+      "package": "com.shalat.remote",
+      "adaptiveIcon": {
+        "backgroundColor": "#07111f"
+      }
+    },
+    "ios": {
+      "supportsTablet": true
+    },
+    "plugins": [
+      "expo-image-picker"
+    ]
+  }
+}
