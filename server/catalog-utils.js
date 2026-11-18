@@ -29,7 +29,7 @@ function publicRemoteProfile(remote) {
     imageUrl: remote.imageUrl || null, layout: remote.layout || null
   };
 }
-function readCatalog({ envCatalogJson, catalogPath }) {
+function readCatalog({ envCatalogJson, envExtraCandidatesJson, catalogPath }) {
   const catalog = envCatalogJson
     ? JSON.parse(envCatalogJson)
     : JSON.parse(fs.readFileSync(catalogPath, "utf8"));
@@ -37,6 +37,27 @@ function readCatalog({ envCatalogJson, catalogPath }) {
     throw new Error("SHALAT catalog is invalid: remotes must be an array.");
   }
   if (!Array.isArray(catalog.updates)) catalog.updates = [];
+  if (envExtraCandidatesJson) {
+    const extra = JSON.parse(envExtraCandidatesJson);
+    const mergeUnique = (base, additions) => {
+      const result = Array.isArray(base) ? [...base] : [];
+      const ids = new Set(result.map((item) => item.id));
+      for (const item of Array.isArray(additions) ? additions : []) {
+        if (item && item.id && !ids.has(item.id)) {
+          result.push(item);
+          ids.add(item.id);
+        }
+      }
+      return result;
+    };
+    catalog.researchCandidates = mergeUnique(catalog.researchCandidates, extra.researchCandidates);
+    catalog.universalRemoteCodeSets = mergeUnique(catalog.universalRemoteCodeSets, extra.universalRemoteCodeSets);
+    catalog.version = Math.max(Number(catalog.version) || 0, Number(extra.version) || 0);
+    catalog.updatedAt = extra.updatedAt || catalog.updatedAt;
+    catalog.updates = [...(Array.isArray(extra.updates) ? extra.updates : []), ...catalog.updates]
+      .filter((item, index, all) => all.findIndex((other) => other.id === item.id) === index)
+      .sort((a, b) => String(b.publishedAt || "").localeCompare(String(a.publishedAt || "")));
+  }
   return catalog;
 }
 module.exports = { normalize, isValidIdentification, findMatchedRemote, publicRemoteProfile, readCatalog };
