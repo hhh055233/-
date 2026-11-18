@@ -10,7 +10,12 @@ app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT || 10000);
 const catalogPath = path.join(__dirname, "catalog.json");
 const protocolCatalogPath = path.join(__dirname, "ir-protocol-catalog.json");
+const wifiIntegrationCatalogPath = path.join(__dirname, "wifi-integration-catalog.json");
 const protocolCatalog = JSON.parse(fs.readFileSync(protocolCatalogPath, "utf8"));
+const wifiIntegrationCatalog = JSON.parse(fs.readFileSync(wifiIntegrationCatalogPath, "utf8"));
+if (!Array.isArray(wifiIntegrationCatalog.providers)) {
+  throw new Error("Wi-Fi integration catalog is missing or invalid.");
+}
 if (!Array.isArray(protocolCatalog.entries) || !protocolCatalog.entries.length) {
   throw new Error("IR protocol catalog is missing or invalid.");
 }
@@ -74,7 +79,16 @@ app.get("/api/updates", (_req, res) => {
       familyCount: protocolCatalog.entries.length,
       brandCount: protocolCatalog.brands.length,
       sourceUpdated: protocolCatalog.sourceUpdated
-    }
+    },
+    wifiIntegrations: wifiIntegrationCatalog.providers.map((provider) => ({
+      id: provider.id,
+      brand: provider.brand,
+      connectionType: provider.connectionType,
+      officialApps: provider.officialApps,
+      shalatStatus: provider.shalatStatus,
+      apiStatus: provider.apiStatus,
+      nextRequirement: provider.nextRequirement
+    }))
   });
 });
 
