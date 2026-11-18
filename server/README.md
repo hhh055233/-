@@ -6,10 +6,10 @@ Private server-side catalog and photo identification API.
 - `GET /` — service status
 - `GET /health` — health check
 - `GET /api/updates` — catalog version and published update notes (never returns catalog entries)
-- `POST /api/identify` — image identification; multipart field: `photo`
+- `POST /api/identify` — image identification; required multipart field `photo`, optional `labelPhoto`
 
 ## Private catalog
-The catalog is stored in `catalog.json` on the server. `researchCandidates` and `universalRemoteCodeSets` are private research notes only; they are not eligible for matching. There is intentionally no public catalog-list endpoint. The app can receive only one sanitized remote profile after a successful scan.
+The full research catalog is stored in the private Render environment variable `SHALAT_CATALOG_JSON`. The committed `catalog.json` contains only public update metadata and an empty safe fallback. `researchCandidates` and `universalRemoteCodeSets` are private research notes only; they are not eligible for matching. There is intentionally no public catalog-list endpoint. The app can receive only one sanitized remote profile after a successful scan.
 
 A match requires all of the following:
 - A readable exact model number in the photo
@@ -23,7 +23,7 @@ Do not mark a remote profile verified until its compatibility is tested with the
 - Build command: `cd server && npm install`
 - Start command: `cd server && npm start`
 - Required secret: `GEMINI_API_KEY`
-- Optional: `GEMINI_MODEL` (server default: `gemini-3.5-flash-lite`)
+- Optional: `GEMINI_MODEL` (server default: `gemini-3.5-flash`). Required private catalog setting: `SHALAT_CATALOG_JSON`.
 
 
 ## First Android build
@@ -33,3 +33,8 @@ Do not mark a remote profile verified until its compatibility is tested with the
 ## Two-photo identification
 
 `POST /api/identify` accepts `photo` and optional `labelPhoto` multipart fields. If the first image does not contain a readable exact model number, the API sets `identification.needsMorePhotos=true`; the app then asks for a second photo of the unit's model label. The API rate-limits identification requests per IP (12 per minute in this in-memory process).
+
+
+## Automated tests
+
+Run `npm test` in this directory. Tests cover exact model matching, confidence thresholds, verified-only eligibility, private control-data sanitization, and private catalog loading.
