@@ -118,7 +118,7 @@ app.post("/api/identify", (req, res, next) => {
         body: JSON.stringify({
           contents: [{ parts: [
             { text: prompt },
-            { inline_data: { mime_type: photoFile.mimetype, data: photoFile.buffer.toString("base64") },
+            { inline_data: { mime_type: photoFile.mimetype, data: photoFile.buffer.toString("base64") } },
             ...(labelFile ? [{ text: "Second image: model label." }, { inline_data: { mime_type: labelFile.mimetype, data: labelFile.buffer.toString("base64") } }] : []) }
           ] }],
           generationConfig: { responseMimeType: "application/json", temperature: 0 }
