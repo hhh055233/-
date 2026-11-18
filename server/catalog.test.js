@@ -37,3 +37,15 @@ test("loads the private catalog from environment JSON", () => {
   assert.equal(catalog.version, 9);
   assert.deepEqual(catalog.remotes, []);
 });
+
+test("merges extra private research candidates without exposing them through matching", () => {
+  const catalog = readCatalog({
+    envCatalogJson: JSON.stringify({ version: 5, remotes: [], researchCandidates: [{ id: "old" }], updates: [] }),
+    envExtraCandidatesJson: JSON.stringify({ version: 6, researchCandidates: [{ id: "new" }, { id: "old" }], updates: [{ id: "v6" }] }),
+    catalogPath: "unused"
+  });
+  assert.equal(catalog.version, 6);
+  assert.deepEqual(catalog.researchCandidates.map((item) => item.id), ["old", "new"]);
+  assert.equal(catalog.updates[0].id, "v6");
+  assert.equal(findMatchedRemote(catalog, valid), null);
+});
