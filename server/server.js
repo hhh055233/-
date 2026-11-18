@@ -27,6 +27,8 @@ const IDENTIFY_MAX_REQUESTS = 12;
 const identifyRequests = new Map();
 const tadiranOtpRequests = new Map();
 const tadiranVerifyRequests = new Map();
+const tadiranDeviceRequests = new Map();
+const tadiranControlRequests = new Map();
 
 function allowLimitedRequest(store, key, limit, windowMs) {
   const now = Date.now();
@@ -47,8 +49,15 @@ function sendWifiError(res, error) {
   return res.status(status).json({ error: message, code });
 }
 
+app.disable("x-powered-by");
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
+app.use((_req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Cache-Control", "no-store");
+  next();
+});
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -241,6 +250,10 @@ app.post("/api/wifi/tadiran/verify", async (req, res) => {
 });
 
 app.post("/api/wifi/tadiran/devices", async (req, res) => {
+  const key = req.ip || req.socket.remoteAddress || "unknown";
+  if (!allowLimitedRequest(tadiranDeviceRequests, key, 30, 60 * 1000)) {
+    return res.status(429).json({ error: "בוצעו יותר מדי בקשות לרשימת המזגנים. המתינו דקה ונסו שוב.", code: "TADIRAN_RATE_LIMIT" });
+  }
   try {
     const result = await listDevices(req.body?.refreshToken);
     return res.json({ ok: true, refreshToken: result.refreshToken, devices: result.devices });
@@ -250,6 +263,10 @@ app.post("/api/wifi/tadiran/devices", async (req, res) => {
 });
 
 app.post("/api/wifi/tadiran/control", async (req, res) => {
+  const key = (req.ip || req.socket.remoteAddress || "unknown") + ":" + String(req.body?.deviceId || "");
+  if (!allowLimitedRequest(tadiranControlRequests, key, 20, 60 * 1000)) {
+    return res.status(429).json({ error: "נשלחו יותר מדי פקודות למזגן בפרק זמן קצר. המתינו דקה ונסו שוב.", code: "TADIRAN_RATE_LIMIT" });
+  }
   try {
     const result = await controlDevice(req.body?.refreshToken, req.body?.deviceId, req.body?.command);
     return res.json({ ok: true, ...result });
