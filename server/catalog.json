@@ -1,6 +1,6 @@
 {
-  "version": 5,
-  "updatedAt": "2026-11-18T18:15:00.000Z",
+  "version": 6,
+  "updatedAt": "2026-11-18T18:35:00.000Z",
   "brands": [
     "Samsung",
     "LG",
@@ -21,6 +21,14 @@
   ],
   "remotes": [],
   "updates": [
+    {
+      "id": "v6-expanded-israeli-remotes",
+      "version": 6,
+      "title": "הורחב מחקר השלטים בישראל",
+      "body": "נוספו מועמדים נוספים לשלטי תדיראן, טורנדו ואלקטרה. הרשימה נשמרת במאגר הפרטי ואינה מוצגת למשתמשים. כל התאמה דורשת אימות לפי דגם המזגן המדויק.",
+      "publishedAt": "2026-11-18T18:35:00.000Z",
+      "type": "catalog"
+    },
     {
       "id": "v5-label-scan-and-model",
       "version": 5,
