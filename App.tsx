@@ -187,8 +187,20 @@ export default function App() {
           </View>}
 
           {notFound && <View style={s.notFoundCard}>
-            <Text style={s.sadRemote}>▣</Text>
-            <Text style={s.kneel}>╱|\n╱  ╲</Text>
+            <View style={s.kneelingRemote}>
+              <View style={s.remoteArms}>
+                <View style={s.remoteArmLeft} />
+                <View style={s.remoteArmRight} />
+              </View>
+              <View style={s.remoteBody}>
+                <View style={s.remoteDisplay} />
+                <View style={s.remoteKeysRow}><View style={s.remoteKey} /><View style={s.remoteKey} /></View>
+                <View style={s.remoteKeysRow}><View style={s.remoteKey} /><View style={s.remoteKey} /><View style={s.remoteKey} /></View>
+                <View style={s.remoteKeysRow}><View style={s.remoteKey} /><View style={s.remoteKey} /></View>
+              </View>
+              <View style={s.remoteKnees}><View style={s.remoteLegLeft} /><View style={s.remoteLegRight} /></View>
+              <Text style={s.remotePlead}>🙏</Text>
+            </View>
             <Text style={s.sorry}>אני מצטער ממעמקי נפשי, לא מצאתי לזה שלט</Text>
             <Text style={s.muted}>אפשר לנסות צילום נוסף, רצוי גם של מדבקת הדגם שעל המזגן.</Text>
             <TouchableOpacity style={s.retryButton} onPress={openCamera}><Text style={s.retryText}>לנסות שוב</Text></TouchableOpacity>
@@ -248,7 +260,18 @@ const s = StyleSheet.create({
   remoteButton: { minWidth: 74, minHeight: 48, padding: 12, backgroundColor: '#1b4960', borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   remoteButtonText: { color: '#fff', fontWeight: '800' }, smallNote: { color: '#9bb7c8', textAlign: 'center', fontSize: 10, marginTop: 14 },
   notFoundCard: { backgroundColor: '#18283a', borderRadius: 22, padding: 20, marginTop: 16, alignItems: 'center', borderWidth: 1, borderColor: '#33485d' },
-  sadRemote: { color: '#b9d5df', fontSize: 66, fontWeight: '900', marginTop: 2 }, kneel: { color: '#b9d5df', fontSize: 22, lineHeight: 19, textAlign: 'center', marginBottom: 12 },
+  kneelingRemote: { width: 150, height: 174, alignItems: 'center', justifyContent: 'flex-start', marginTop: 6, marginBottom: 12 },
+  remoteBody: { width: 54, height: 112, borderRadius: 17, backgroundColor: '#d8e7ed', borderWidth: 3, borderColor: '#89a9b7', alignItems: 'center', paddingTop: 10, zIndex: 2 },
+  remoteDisplay: { width: 31, height: 17, borderRadius: 4, backgroundColor: '#7b9a8c', borderWidth: 1, borderColor: '#56756b', marginBottom: 8 },
+  remoteKeysRow: { flexDirection: 'row', gap: 4, marginBottom: 5 },
+  remoteKey: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#7595a4' },
+  remoteArms: { position: 'absolute', top: 43, width: 118, flexDirection: 'row', justifyContent: 'space-between', zIndex: 1 },
+  remoteArmLeft: { width: 35, height: 9, borderRadius: 6, backgroundColor: '#b9d5df', transform: [{ rotate: '-42deg' }] },
+  remoteArmRight: { width: 35, height: 9, borderRadius: 6, backgroundColor: '#b9d5df', transform: [{ rotate: '42deg' }] },
+  remoteKnees: { position: 'absolute', bottom: 7, width: 112, flexDirection: 'row', justifyContent: 'space-between' },
+  remoteLegLeft: { width: 42, height: 18, borderRadius: 12, borderWidth: 6, borderColor: '#b9d5df', borderTopColor: 'transparent', transform: [{ rotate: '-14deg' }] },
+  remoteLegRight: { width: 42, height: 18, borderRadius: 12, borderWidth: 6, borderColor: '#b9d5df', borderTopColor: 'transparent', transform: [{ rotate: '14deg' }] },
+  remotePlead: { position: 'absolute', top: 2, right: 4, fontSize: 24 },
   sorry: { color: '#fff', fontSize: 17, lineHeight: 26, fontWeight: '900', textAlign: 'center' },
   muted: { color: '#9cb0c2', fontSize: 13, lineHeight: 21, textAlign: 'center', marginTop: 9 },
   retryButton: { backgroundColor: '#4bd5c4', borderRadius: 13, paddingVertical: 13, paddingHorizontal: 25, marginTop: 16, minHeight: 46, justifyContent: 'center' },
