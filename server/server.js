@@ -28,7 +28,7 @@ const upload = multer({
 });
 
 function getCatalog() {
-  return readCatalog({ envCatalogJson: process.env.SHALAT_CATALOG_JSON, catalogPath });
+  return readCatalog({ envCatalogJson: process.env.SHALAT_CATALOG_JSON, envExtraCandidatesJson: process.env.SHALAT_EXTRA_CANDIDATES_JSON, catalogPath });
 }
 
 app.get("/", (_req, res) => {
