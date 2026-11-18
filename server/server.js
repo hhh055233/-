@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const app = express();
+app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT || 10000);
 const catalogPath = path.join(__dirname, "catalog.json");
 const MIN_IDENTIFICATION_CONFIDENCE = 0.92;
