@@ -1,6 +1,6 @@
 {
-  "version": 7,
-  "updatedAt": "2026-11-18T18:48:00.000Z",
+  "version": 8,
+  "updatedAt": "2026-11-18T19:05:00.000Z",
   "brands": [
     "Samsung",
     "LG",
@@ -21,6 +21,14 @@
   ],
   "remotes": [],
   "updates": [
+    {
+      "id": "v8-lg-family-tcl-pilot",
+      "version": 8,
+      "title": "נוספו מועמדים ל-LG, פמילי, TCL ופיילוט",
+      "body": "נוספו מזהי שלטים מספקים ישראליים עבור LG, פמילי, TCL ופיילוט. אלה מועמדים למחקר בלבד, לא התאמות מאומתות למזגנים.",
+      "publishedAt": "2026-11-18T19:05:00.000Z",
+      "type": "catalog"
+    },
     {
       "id": "v7-samsung-and-remote-families",
       "version": 7,
