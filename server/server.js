@@ -9,6 +9,12 @@ const app = express();
 app.set("trust proxy", 1);
 const PORT = Number(process.env.PORT || 10000);
 const catalogPath = path.join(__dirname, "catalog.json");
+const protocolCatalogPath = path.join(__dirname, "ir-protocol-catalog.json");
+const protocolCatalog = JSON.parse(fs.readFileSync(protocolCatalogPath, "utf8"));
+if (!Array.isArray(protocolCatalog.entries) || !protocolCatalog.entries.length) {
+  throw new Error("IR protocol catalog is missing or invalid.");
+}
+console.log("SHALAT IR protocol inventory loaded: " + protocolCatalog.entries.length + " families across " + protocolCatalog.brands.length + " brands.");
 const IDENTIFY_WINDOW_MS = 60 * 1000;
 const IDENTIFY_MAX_REQUESTS = 12;
 const identifyRequests = new Map();
@@ -60,7 +66,16 @@ app.get("/health", (_req, res) => {
 // retrieve one exact, verified profile after a successful photo scan.
 app.get("/api/updates", (_req, res) => {
   const catalog = getCatalog();
-  res.json({ version: catalog.version, updatedAt: catalog.updatedAt, updates: Array.isArray(catalog.updates) ? catalog.updates : [] });
+  res.json({
+    version: catalog.version,
+    updatedAt: catalog.updatedAt,
+    updates: Array.isArray(catalog.updates) ? catalog.updates : [],
+    protocolInventory: {
+      familyCount: protocolCatalog.entries.length,
+      brandCount: protocolCatalog.brands.length,
+      sourceUpdated: protocolCatalog.sourceUpdated
+    }
+  });
 });
 
 app.post("/api/identify", (req, res, next) => {
