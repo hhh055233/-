@@ -97,6 +97,7 @@ app.get("/api/updates", (_req, res) => {
   res.json({
     version: catalog.version,
     updatedAt: catalog.updatedAt,
+    verifiedRemoteCount: catalog.remotes.filter((remote) => remote && remote.verified === true).length,
     updates: Array.isArray(catalog.updates) ? catalog.updates : [],
     protocolInventory: {
       familyCount: protocolCatalog.entries.length,
@@ -194,7 +195,10 @@ app.post("/api/identify", (req, res, next) => {
       },
       matchedRemote: matchedRemote ? publicRemoteProfile(matchedRemote) : null,
       catalogVersion: catalog.version,
-      controlReady: Boolean(matchedRemote)
+      profileMatched: Boolean(matchedRemote),
+      // A catalog match alone never proves that the phone has compatible IR hardware
+      // or that a Wi-Fi integration has been physically validated.
+      controlReady: false
     });
   } catch (error) {
     console.error("Identification request failed:", error.message);
