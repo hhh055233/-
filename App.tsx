@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { SafeAreaView, View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, Linking, Animated, Easing } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { StatusBar } from 'expo-status-bar';
+import TadiranWifiPanel from './TadiranWifiPanel';
 
 const API_BASE_URL = 'https://shalat-api.onrender.com';
 
@@ -253,6 +254,7 @@ export default function App() {
           {photo && !isIdentifying && <TouchableOpacity style={s.retryLink} onPress={openCamera}><Text style={s.retryText}>צלמו שוב</Text></TouchableOpacity>}
         </> : <View style={s.panel}>
           <Text style={s.sectionTitle}>מרכז העדכונים</Text>
+          <TadiranWifiPanel />
           <View style={s.updateCard}>
             <Text style={s.updateBadge}>מאגר שלטים</Text>
             <Text style={s.cardTitle}>עדכוני שלטים אוטומטיים</Text>
