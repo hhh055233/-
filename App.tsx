@@ -19,6 +19,7 @@ export default function App() {
   const [photo, setPhoto] = useState<string | null>(null);
   const [remote, setRemote] = useState<RemoteProfile | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [needsLabelPhoto, setNeedsLabelPhoto] = useState(false);
   const [isIdentifying, setIsIdentifying] = useState(false);
   const [tab, setTab] = useState<'camera' | 'updates'>('camera');
   const [serverStatus, setServerStatus] = useState<'unknown' | 'online' | 'offline'>('unknown');
@@ -46,9 +47,10 @@ export default function App() {
     } catch { setServerStatus('offline'); }
   }
 
-  async function identifyPhoto(uri: string) {
+  async function identifyPhoto(uri: string, labelUri?: string) {
     setIsIdentifying(true);
     setNotFound(false);
+    setNeedsLabelPhoto(false);
     setRemote(null);
     try {
       const filename = uri.split('/').pop() || 'air-conditioner.jpg';
@@ -56,6 +58,12 @@ export default function App() {
       const mimeType = extension === 'png' ? 'image/png' : extension === 'webp' ? 'image/webp' : 'image/jpeg';
       const body = new FormData();
       body.append('photo', { uri, name: filename, type: mimeType } as any);
+      if (labelUri) {
+        const labelName = labelUri.split('/').pop() || 'model-label.jpg';
+        const labelExt = labelName.split('.').pop()?.toLowerCase();
+        const labelMime = labelExt === 'png' ? 'image/png' : labelExt === 'webp' ? 'image/webp' : 'image/jpeg';
+        body.append('labelPhoto', { uri: labelUri, name: labelName, type: labelMime } as any);
+      }
       const response = await fetch(`${API_BASE_URL}/api/identify`, { method: 'POST', body });
       const result = await response.json();
       if (!response.ok) {
@@ -64,6 +72,10 @@ export default function App() {
         } else {
           Alert.alert('לא הצלחנו לזהות', result.error || 'נסו לצלם שוב תמונה ברורה יותר.');
         }
+        return;
+      }
+      if (result.needsMorePhotos === true && !labelUri) {
+        setNeedsLabelPhoto(true);
         return;
       }
       if (result.matchedRemote?.verified === true) {
@@ -92,8 +104,19 @@ export default function App() {
       setPhoto(uri);
       setRemote(null);
       setNotFound(false);
+      setNeedsLabelPhoto(false);
       await identifyPhoto(uri);
     }
+  }
+
+  async function openLabelCamera() {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('נדרשת הרשאת מצלמה', 'כדי לקרוא את מדבקת הדגם יש לאפשר שימוש במצלמה.');
+      return;
+    }
+    const result = await ImagePicker.launchCameraAsync({ mediaTypes: ['images'], quality: 0.95, allowsEditing: false });
+    if (!result.canceled && result.assets[0] && photo) await identifyPhoto(photo, result.assets[0].uri);
   }
 
   useEffect(() => { loadCatalogStatus(); openCamera(); }, []);
@@ -139,6 +162,12 @@ export default function App() {
               {remote.layout.buttons.map((button, index) => <View key={index} style={s.remoteButton}><Text style={s.remoteButtonText}>{button}</Text></View>)}
             </View>}
             <Text style={s.smallNote}>השלט מוצג לפי פרופיל מאומת במאגר.</Text>
+          </View>}
+
+          {needsLabelPhoto && <View style={s.hintCard}>
+            <Text style={s.cardTitle}>כמעט מצאנו — צריך צילום של מדבקת הדגם</Text>
+            <Text style={s.muted}>צלמו את המדבקה שעל היחידה הפנימית. כך נוכל לבדוק התאמה מדויקת ולא לנחש לפי המראה בלבד.</Text>
+            <TouchableOpacity style={s.retryButton} onPress={openLabelCamera}><Text style={s.retryText}>צילום מדבקת הדגם</Text></TouchableOpacity>
           </View>}
 
           {notFound && <View style={s.notFoundCard}>
