@@ -5,17 +5,27 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "splash": { "backgroundColor": "#07111f" },
+    "splash": {
+      "backgroundColor": "#07111f"
+    },
     "android": {
       "package": "com.shalat.remote",
-      "adaptiveIcon": { "backgroundColor": "#07111f" }
+      "adaptiveIcon": {
+        "backgroundColor": "#07111f"
+      },
+      "versionCode": 1
     },
-    "ios": { "supportsTablet": true },
+    "ios": {
+      "supportsTablet": true
+    },
     "plugins": [
-      ["expo-image-picker", {
-        "cameraPermission": "SHALAT משתמשת במצלמה כדי לזהות את המזגן ולמצוא שלט תואם.",
-        "photosPermission": "SHALAT משתמשת בתמונות רק כאשר בוחרים תמונה לזיהוי."
-      }]
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "SHALAT משתמשת במצלמה כדי לזהות את המזגן ולמצוא שלט תואם.",
+          "photosPermission": "SHALAT משתמשת בתמונות רק כאשר בוחרים תמונה לזיהוי."
+        }
+      ]
     ]
   }
 }
