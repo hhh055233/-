@@ -1,11 +1,391 @@
 {
-  "version": 2,
-  "updatedAt": "2026-11-18T00:00:00.000Z",
-  "brands": ["Samsung", "LG", "Electra", "Tadiran", "Tornado"],
+  "version": 3,
+  "updatedAt": "2026-11-18T18:00:00.000Z",
+  "brands": [
+    "Samsung",
+    "LG",
+    "Electra",
+    "Tadiran",
+    "Tornado",
+    "Amcor",
+    "Family",
+    "Gree",
+    "Midea",
+    "Hisense",
+    "AUX"
+  ],
   "remotes": [],
+  "researchCandidates": [
+    {
+      "id": "tadiran-tac297",
+      "brand": "Tadiran",
+      "remoteModel": "TAC 297",
+      "manufacturerPartNumber": "51603500450",
+      "compatibilityClaims": [
+        "Tadiran mini-central air conditioners (Israeli manufacture)"
+      ],
+      "evidenceLevel": "manufacturer-listed",
+      "verified": false,
+      "sources": [
+        "https://www.tadiran-group.co.il/product/tac-297-51603500450/"
+      ],
+      "notes": "Manufacturer confirms remote identity and product category, but exact AC model list and hardware test are still missing."
+    },
+    {
+      "id": "tadiran-spectra",
+      "brand": "Tadiran",
+      "remoteModel": "SPECTRA",
+      "manufacturerPartNumber": "52001014915",
+      "compatibilityClaims": [
+        "Tadiran SPECTRA series (exact models not yet documented)"
+      ],
+      "evidenceLevel": "manufacturer-listed",
+      "verified": false,
+      "sources": [
+        "https://www.tadiran-group.co.il/remote-controllers/"
+      ],
+      "notes": "Official product listing; requires exact compatible AC model mapping."
+    },
+    {
+      "id": "tadiran-300-350-inv",
+      "brand": "Tadiran",
+      "remoteModel": "300-350 INV",
+      "manufacturerPartNumber": "52001010211",
+      "compatibilityClaims": [
+        "Tadiran 300-350 INV series (exact models not yet documented)"
+      ],
+      "evidenceLevel": "manufacturer-listed",
+      "verified": false,
+      "sources": [
+        "https://www.tadiran-group.co.il/remote-controllers/",
+        "https://www.tadiran-group.co.il/wp-content/uploads/2022/12/Tadiran_installers_2022-1.pdf"
+      ],
+      "notes": "Official part number; installer guide groups several inverter product families by remote appearance."
+    },
+    {
+      "id": "tadiran-wifi-7speed",
+      "brand": "Tadiran",
+      "remoteModel": "WI-FI 7SPEED",
+      "manufacturerPartNumber": "52001013798",
+      "compatibilityClaims": [
+        "Tadiran series not yet mapped"
+      ],
+      "evidenceLevel": "manufacturer-listed",
+      "verified": false,
+      "sources": [
+        "https://www.tadiran-group.co.il/remote-controllers/"
+      ],
+      "notes": "Official listing only; no exact indoor-unit model mapping."
+    },
+    {
+      "id": "tadiran-3speed",
+      "brand": "Tadiran",
+      "remoteModel": "3SPEED",
+      "manufacturerPartNumber": "52001010710",
+      "compatibilityClaims": [
+        "Tadiran series not yet mapped"
+      ],
+      "evidenceLevel": "manufacturer-listed",
+      "verified": false,
+      "sources": [
+        "https://www.tadiran-group.co.il/remote-controllers/"
+      ],
+      "notes": "Official listing only; no exact indoor-unit model mapping."
+    },
+    {
+      "id": "tadiran-ira",
+      "brand": "Tadiran",
+      "remoteModel": "I.R.A",
+      "manufacturerPartNumber": "52001001104",
+      "compatibilityClaims": [
+        "Tadiran series not yet mapped"
+      ],
+      "evidenceLevel": "manufacturer-listed",
+      "verified": false,
+      "sources": [
+        "https://www.tadiran-group.co.il/remote-controllers/"
+      ],
+      "notes": "Official listing only; exact compatibility remains unknown."
+    },
+    {
+      "id": "electra-rc-family",
+      "brand": "Electra",
+      "remoteModel": "RC-series family",
+      "manufacturerPartNumber": null,
+      "remoteModelAliases": [
+        "RC",
+        "RC-3",
+        "RC-7",
+        "RC-71-1",
+        "YKR-M/001E",
+        "YKR-M/002E",
+        "RC-3 VAV",
+        "RC-4HL",
+        "RC-41-1",
+        "RC-4RCL",
+        "RC-41RC",
+        "RC-5",
+        "YKR-F/010",
+        "YKR-F/016E",
+        "YKR-F/015E",
+        "KFR-A",
+        "KK9A-C25",
+        "YBOF",
+        "DG11J1-01",
+        "ELCO",
+        "P/N 435600",
+        "P/N 436000",
+        "RC-08A",
+        "RC-08B",
+        "RC-52A1/BGEF"
+      ],
+      "compatibilityClaims": [
+        "Electra/Elco/Airwell-compatible replacement remote family according to local supplier code chart"
+      ],
+      "evidenceLevel": "supplier-code-chart",
+      "verified": false,
+      "sources": [
+        "https://d3m9l0v76dty0.cloudfront.net/system/photos/8813020/original/41ae642751fefe849e046737f5781d84.pdf?1645521696=",
+        "https://www.ezt.co.il/web/default.aspx?itemid=132931&pagetype=9",
+        "https://www.grafpc.co.il/pl_product~2478~61~0.htm"
+      ],
+      "notes": "23 remote identifiers/codes documented. This is not proof that all Electra AC models use these remotes; requires model-specific mapping."
+    },
+    {
+      "id": "lg-6711a20096-family",
+      "brand": "LG",
+      "remoteModel": "6711A20096 family",
+      "manufacturerPartNumber": "6711A20096",
+      "remoteModelAliases": [
+        "6711A90032S",
+        "6711A20034S",
+        "6711A20035D",
+        "6711A20034E",
+        "6711A90032K",
+        "6711A90032N",
+        "KTLG01",
+        "6711A90031Y",
+        "6711A20096C",
+        "6711A90032L",
+        "6711A90032Y",
+        "6711A90091H",
+        "L8004R",
+        "6711AR2664B",
+        "6711A20073D",
+        "6711A20073U",
+        "6711A20073V",
+        "6711A20083X",
+        "6711A20091H"
+      ],
+      "compatibilityClaims": [
+        "A range of LG air-conditioner remote identifiers listed by Israeli retailers"
+      ],
+      "evidenceLevel": "supplier-compatibility-list",
+      "verified": false,
+      "sources": [
+        "https://nextstock.co.il/product/שלט-רחוק-למזגן-lg/",
+        "https://gadgetsandmore.co.il/שלט-רחוק/שלט-רחוק-למזגן-lg/"
+      ],
+      "notes": "Retailer compatibility list only; exact indoor AC model numbers and hardware confirmation are absent."
+    },
+    {
+      "id": "tornado-tl9091-family",
+      "brand": "Tornado",
+      "remoteModel": "TL9091 / R06-BGCE family",
+      "manufacturerPartNumber": "TL9091",
+      "remoteModelAliases": [
+        "R06/BGCE",
+        "R06/BGE",
+        "R09B/BGE",
+        "R09B/BGCE"
+      ],
+      "compatibilityClaims": [
+        "Tornado TDO 10-34, TGO 27-44, GOLD 10-34/38-44, PLASMA 100-220/270-340, LEGEND, SAGA F9-F34/F38"
+      ],
+      "evidenceLevel": "supplier-compatibility-list",
+      "verified": false,
+      "sources": [
+        "https://dealema.co.il/product/שלט-רחוק-למזגן-tornado-טורנדו-כולל-תאורת-מס/",
+        "https://www.sakit.co.il/remote-control-for-air-conditioner-tornado"
+      ],
+      "notes": "Supplier listings give series-level compatibility; exact AC model numbers and hardware test are still required."
+    },
+    {
+      "id": "tornado-ykr-l102e",
+      "brand": "Tornado",
+      "remoteModel": "YKR-L/102E",
+      "manufacturerPartNumber": "YKR-L/102E",
+      "compatibilityClaims": [
+        "Tornado X series; seller also lists SHOWNIC, FREGO, AUX, BeSAT and ZANUSSI compatible devices"
+      ],
+      "evidenceLevel": "supplier-compatibility-list",
+      "verified": false,
+      "sources": [
+        "https://dealema.co.il/product-category/מוצרי-חשמל/שלטים/שלטים-למזגנים/page/2/"
+      ],
+      "notes": "Series-level seller claim, not yet validated against exact Tornado indoor-unit models."
+    },
+    {
+      "id": "tadiran-universal-code-family",
+      "brand": "Tadiran",
+      "remoteModel": "Universal code families (not a physical remote profile)",
+      "manufacturerPartNumber": null,
+      "remoteModelAliases": [
+        "ZM9067",
+        "TAC297",
+        "TAC290",
+        "TL9060",
+        "YB1FA",
+        "YAC1FB",
+        "YAC1FB6",
+        "ZM9401"
+      ],
+      "compatibilityClaims": [
+        "Names found in local retailer/reference material; some are remote identifiers, not necessarily AC model numbers"
+      ],
+      "evidenceLevel": "reference-only",
+      "verified": false,
+      "sources": [
+        "https://kndhco.co.il/product/שלט-אוניברסלי-למזגן/",
+        "https://dealema.co.il/product-category/מוצרי-חשמל/שלטים/שלטים-למזגנים/page/2/"
+      ],
+      "notes": "Kept as search aliases only. Do not use these values as an exact indoor-unit model match."
+    }
+  ],
+  "universalRemoteCodeSets": [
+    {
+      "id": "electra-usp4006",
+      "remoteFamily": "Electra USP4006-compatible universal remote",
+      "codes": [
+        {
+          "code": "01",
+          "remote": "RC-3"
+        },
+        {
+          "code": "02",
+          "remote": "RC-7"
+        },
+        {
+          "code": "03",
+          "remote": "RC-71-1"
+        },
+        {
+          "code": "04",
+          "remote": "YKR-M/001E or YKR-M/002E"
+        },
+        {
+          "code": "05",
+          "remote": "RC-3 VAV"
+        },
+        {
+          "code": "06",
+          "remote": "RC-4 HL"
+        },
+        {
+          "code": "07",
+          "remote": "RC-41-1"
+        },
+        {
+          "code": "08",
+          "remote": "RC-4 RCL"
+        },
+        {
+          "code": "09",
+          "remote": "RC-41 RC"
+        },
+        {
+          "code": "10",
+          "remote": "RC"
+        },
+        {
+          "code": "11",
+          "remote": "RC-5"
+        },
+        {
+          "code": "12",
+          "remote": "YKR-F/010"
+        },
+        {
+          "code": "13",
+          "remote": "YKR-F/016E"
+        },
+        {
+          "code": "14",
+          "remote": "YKR-F/015E"
+        },
+        {
+          "code": "15",
+          "remote": "KFR A or KK9A-C25"
+        },
+        {
+          "code": "16",
+          "remote": "YBOF"
+        },
+        {
+          "code": "17",
+          "remote": "DG11J1-01"
+        },
+        {
+          "code": "18",
+          "remote": "ELCO"
+        },
+        {
+          "code": "19",
+          "remote": "P/N 435600 or P/N 436000"
+        },
+        {
+          "code": "20",
+          "remote": "Damper"
+        },
+        {
+          "code": "21",
+          "remote": "RC-08A"
+        },
+        {
+          "code": "22",
+          "remote": "RC-08B"
+        },
+        {
+          "code": "23",
+          "remote": "RC-52A1/BGEF"
+        }
+      ],
+      "evidenceLevel": "published-code-chart",
+      "verified": false,
+      "sources": [
+        "https://d3m9l0v76dty0.cloudfront.net/system/photos/8813020/original/41ae642751fefe849e046737f5781d84.pdf?1645521696="
+      ],
+      "notes": "Codes are setup positions for a particular universal remote, not IR command codes and not AC model numbers."
+    }
+  ],
   "policy": {
     "publicListing": false,
-    "matchRequires": ["verified=true", "exact brand match", "exact modelNumber match", "identification confidence >= 0.92"],
-    "verification": "A profile may be marked verified only after the exact remote is validated against the exact AC model on real hardware. Never add guessed compatibility."
-  }
+    "matchRequires": [
+      "verified=true",
+      "exact brand match",
+      "exact indoor-unit modelNumber match",
+      "identification confidence >= 0.92"
+    ],
+    "verification": "A profile may be marked verified only after the exact remote is validated against the exact AC model on real hardware. Never add guessed compatibility.",
+    "candidatePolicy": "Research candidates and supplier claims are private research notes only. They must never be returned as a matched remote or presented as verified.",
+    "sourcePolicy": "Prefer manufacturer documentation; retailer/supplier compatibility claims remain unverified until independently confirmed."
+  },
+  "updates": [
+    {
+      "id": "v3-research-catalog",
+      "version": 3,
+      "title": "נוסף מאגר מחקר ראשוני",
+      "body": "נאספו דגמי שלטים ומספרי חלקים לתדיראן, אלקטרה, LG וטורנדו ממסמכי יצרן וממקורות ספקים. כל ההתאמות עדיין מסומנות לבדיקה, ולכן האפליקציה לא תציג אותן כשלטים מאומתים.",
+      "publishedAt": "2026-11-18T18:00:00.000Z",
+      "type": "catalog"
+    },
+    {
+      "id": "v3-private-catalog",
+      "version": 3,
+      "title": "המאגר נשאר פרטי",
+      "body": "האפליקציה מקבלת רק שלט יחיד לאחר התאמה מדויקת ומאומתת. אין מסך שמאפשר לדפדף בכל המאגר.",
+      "publishedAt": "2026-11-18T18:00:00.000Z",
+      "type": "security"
+    }
+  ]
 }
