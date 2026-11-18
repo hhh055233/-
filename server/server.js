@@ -4,6 +4,7 @@ const multer = require("multer");
 const fs = require("node:fs");
 const path = require("node:path");
 const { readCatalog, findMatchedRemote, publicRemoteProfile } = require("./catalog-utils");
+const { publicWifiProviders } = require("./wifi-utils");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -80,15 +81,7 @@ app.get("/api/updates", (_req, res) => {
       brandCount: protocolCatalog.brands.length,
       sourceUpdated: protocolCatalog.sourceUpdated
     },
-    wifiIntegrations: wifiIntegrationCatalog.providers.map((provider) => ({
-      id: provider.id,
-      brand: provider.brand,
-      connectionType: provider.connectionType,
-      officialApps: provider.officialApps,
-      shalatStatus: provider.shalatStatus,
-      apiStatus: provider.apiStatus,
-      nextRequirement: provider.nextRequirement
-    }))
+    wifiIntegrations: publicWifiProviders(wifiIntegrationCatalog)
   });
 });
 
