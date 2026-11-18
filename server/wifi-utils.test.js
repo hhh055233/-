@@ -45,3 +45,18 @@ test("returns only valid provider records", () => {
   assert.deepEqual(publicWifiProviders({ providers: [null, {}, { id: "x", brand: "X" }] }).map((x) => x.id), ["x"]);
   assert.deepEqual(publicWifiProviders({ providers: "invalid" }), []);
 });
+
+test("preserves the manufacturer's remote part reference without claiming IR compatibility", () => {
+  const result = publicWifiProvider({
+    id: "spectra",
+    brand: "Spectra",
+    remoteControlReference: {
+      name: "SPECTRA remote",
+      partNumber: "52001014915",
+      sourceUrl: "https://example.com",
+      note: "Part number only; not an IR profile."
+    }
+  });
+  assert.equal(result.remoteControlReference.partNumber, "52001014915");
+  assert.match(result.remoteControlReference.note, /not an IR profile/);
+});
