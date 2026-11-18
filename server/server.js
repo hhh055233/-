@@ -5,6 +5,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { readCatalog, findMatchedRemote, publicRemoteProfile } = require("./catalog-utils");
 const { publicWifiProviders } = require("./wifi-utils");
+const { TadiranWifiError, validatePhone, initiateOtp, verifyOtp, listDevices, controlDevice } = require("./tadiran-wifi");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -24,6 +25,27 @@ console.log("SHALAT IR protocol inventory loaded: " + protocolCatalog.entries.le
 const IDENTIFY_WINDOW_MS = 60 * 1000;
 const IDENTIFY_MAX_REQUESTS = 12;
 const identifyRequests = new Map();
+const tadiranOtpRequests = new Map();
+const tadiranVerifyRequests = new Map();
+
+function allowLimitedRequest(store, key, limit, windowMs) {
+  const now = Date.now();
+  const entry = store.get(key) || { startedAt: now, count: 0 };
+  if (now - entry.startedAt > windowMs) { entry.startedAt = now; entry.count = 0; }
+  entry.count += 1;
+  store.set(key, entry);
+  if (store.size > 2000) {
+    for (const [itemKey, item] of store) if (now - item.startedAt > windowMs) store.delete(itemKey);
+  }
+  return entry.count <= limit;
+}
+
+function sendWifiError(res, error) {
+  const status = Number(error?.status) || 502;
+  const code = typeof error?.code === "string" ? error.code : "WIFI_CONNECTION_FAILED";
+  const message = typeof error?.message === "string" ? error.message : "חיבור ה-Wi-Fi נכשל. נסו שוב.";
+  return res.status(status).json({ error: message, code });
+}
 
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
@@ -180,6 +202,55 @@ app.post("/api/identify", (req, res, next) => {
       return res.status(504).json({ error: "Recognition took too long. Please try again." });
     }
     return res.status(500).json({ error: "Image identification failed unexpectedly." });
+  }
+});
+
+app.post("/api/wifi/tadiran/start", async (req, res) => {
+  const phone = req.body?.phone;
+  if (!validatePhone(phone)) return res.status(400).json({ error: "יש להזין מספר טלפון בינלאומי, למשל ‎+972…", code: "INVALID_PHONE" });
+  const key = (req.ip || req.socket.remoteAddress || "unknown") + ":" + phone.trim();
+  if (!allowLimitedRequest(tadiranOtpRequests, key, 3, 15 * 60 * 1000)) {
+    return res.status(429).json({ error: "נשלחו יותר מדי בקשות לקוד אימות. יש להמתין 15 דקות.", code: "TADIRAN_RATE_LIMIT" });
+  }
+  try {
+    const result = await initiateOtp(phone);
+    return res.json({ ok: true, session: result.session, message: "קוד אימות נשלח במסרון." });
+  } catch (error) {
+    return sendWifiError(res, error);
+  }
+});
+
+app.post("/api/wifi/tadiran/verify", async (req, res) => {
+  const phone = req.body?.phone;
+  const otp = req.body?.otp;
+  const session = req.body?.session;
+  const key = req.ip || req.socket.remoteAddress || "unknown";
+  if (!allowLimitedRequest(tadiranVerifyRequests, key, 8, 10 * 60 * 1000)) {
+    return res.status(429).json({ error: "בוצעו יותר מדי ניסיונות אימות. יש להמתין ולנסות שוב.", code: "TADIRAN_RATE_LIMIT" });
+  }
+  try {
+    const result = await verifyOtp(phone, session, otp);
+    return res.json({ ok: true, refreshToken: result.refreshToken, devices: result.devices });
+  } catch (error) {
+    return sendWifiError(res, error);
+  }
+});
+
+app.post("/api/wifi/tadiran/devices", async (req, res) => {
+  try {
+    const result = await listDevices(req.body?.refreshToken);
+    return res.json({ ok: true, refreshToken: result.refreshToken, devices: result.devices });
+  } catch (error) {
+    return sendWifiError(res, error);
+  }
+});
+
+app.post("/api/wifi/tadiran/control", async (req, res) => {
+  try {
+    const result = await controlDevice(req.body?.refreshToken, req.body?.deviceId, req.body?.command);
+    return res.json({ ok: true, ...result });
+  } catch (error) {
+    return sendWifiError(res, error);
   }
 });
 
