@@ -99,22 +99,22 @@
         "Spectra S Plus"
       ],
       "connectionType": "model-dependent-ir-or-wifi",
-      "officialApps": [
-        {
-          "name": "MY TADIRAN / EWPE SMART (model-dependent)",
-          "models": "Only where the exact Spectra model's official documentation explicitly confirms Wi-Fi support; no blanket Spectra compatibility is established.",
-          "sourceUrl": "https://www.tadiran-group.co.il/wp-content/uploads/2022/07/51302690121-SPECTRA-S-PLUS-10-35-Operation-Installation-Manual.pdf"
-        }
-      ],
+      "officialApps": [],
       "shalatStatus": "not_connected",
       "apiStatus": "no_spectra_specific_cloud_api_verified",
-      "nextRequirement": "Build and verify exact infrared remote profiles for Spectra models. Treat Wi-Fi as unsupported unless the exact model manual and app identify a supported connection method.",
-      "researchEvidence": "The official Spectra S Plus 10-35 manual marks its Wi-Fi button as inactive. This is model-specific evidence and must not be generalized to every Spectra product. Other Spectra variants require individual manual/app verification.",
+      "nextRequirement": "ל-SPECTRA S PLUS 10–35: לא להפעיל Wi-Fi; לחקור ולאמת פרופיל IR לפי מספר הדגם. לדגמי Spectra אחרים: לבדוק מדריך רשמי ושיטת החיבור המדויקת לפני הצגת תמיכה.",
+      "researchEvidence": "בדגם SPECTRA S PLUS 10–35, במדריך הרשמי של תדיראן בעמוד 12 מצוין במפורש שכפתור Wi‑Fi בשלט אינו פעיל. לכן אין להפעיל עבור הדגם הזה חיבור Wi‑Fi על סמך סמל הכפתור בלבד. לגבי דגמי Spectra אחרים אין להסיק מכך; יש לבדוק כל דגם בנפרד.",
       "sourceUrls": [
         "https://www.tadiran-group.co.il/wp-content/uploads/2022/07/51302690121-SPECTRA-S-PLUS-10-35-Operation-Installation-Manual.pdf",
         "https://www.tadiran-group.co.il/wp-content/uploads/2022/07/513026700001-TADIRAN-ALPHA-EXPERT-INVERTER-Operation-Installation-Manual.pdf"
       ],
-      "communityIntegration": null
+      "communityIntegration": null,
+      "remoteControlReference": {
+        "name": "שלט SPECTRA",
+        "partNumber": "52001014915",
+        "sourceUrl": "https://www.tadiran-group.co.il/electronic-devices/remote-controllers/",
+        "note": "מספר חלק של שלט מקורי שמופיע באתר תדיראן; אינו מהווה קוד IR מאומת או התאמה אוטומטית לדגם."
+      }
     }
   ]
 }
