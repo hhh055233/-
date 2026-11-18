@@ -38,3 +38,8 @@ Do not mark a remote profile verified until its compatibility is tested with the
 ## Automated tests
 
 Run `npm test` in this directory. Tests cover exact model matching, confidence thresholds, verified-only eligibility, private control-data sanitization, and private catalog loading.
+
+
+## Repository visibility note
+
+The active `main` snapshot no longer stores the research candidate list in Git; the live catalog is loaded from private Render environment variables. However, this repository is public and earlier commits may still contain previous catalog snapshots. For complete confidentiality of historical Git data, the repository owner must change the repository visibility to private or rewrite its Git history.
