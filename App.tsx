@@ -226,14 +226,14 @@ export default function App() {
           </View>}
 
           {remote && <View style={s.remoteCard}>
-            <Text style={s.foundTag}>✓  נמצא שלט מאומת</Text>
+            <Text style={s.foundTag}>✓  נמצאה התאמת פרופיל מאומתת</Text>
             <Text style={s.remoteBrand}>{remote.brand}</Text>
             <Text style={s.remoteModel}>{remote.model}</Text>
             {remote.imageUrl ? <Image source={{ uri: remote.imageUrl }} style={s.remoteImage} resizeMode="contain" /> : null}
             {Array.isArray(remote.layout?.buttons) && <View style={s.remoteButtons}>
               {remote.layout.buttons.map((button, index) => <View key={index} style={s.remoteButton}><Text style={s.remoteButtonText}>{button}</Text></View>)}
             </View>}
-            <Text style={s.smallNote}>פרופיל מאומת בלבד. שליטה בפועל תופעל רק לאחר חיבור ובדיקת חומרת IR או Wi-Fi תואמת.</Text>
+            <Text style={s.smallNote}>ההתאמה למספר הדגם אומתה במאגר. זהו כרגע פרופיל תצוגה בלבד: האפליקציה עדיין אינה משדרת פקודות IR, וחיבור Wi-Fi זמין רק דרך ספקים ודגמים נתמכים שעברו אימות.</Text>
           </View>}
 
           {needsLabelPhoto && <View style={s.hintCard}>
