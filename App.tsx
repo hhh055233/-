@@ -179,7 +179,9 @@ export default function App() {
     if (!result.canceled && result.assets[0] && photo) await identifyPhoto(photo, result.assets[0].uri);
   }
 
-  useEffect(() => { loadCatalogStatus(); openCamera(); }, []);
+  // Do not open the camera or request permission automatically on launch.
+  // Let the user choose when to start a scan from the explicit camera button.
+  useEffect(() => { void loadCatalogStatus(); }, []);
 
   const rotation = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
 
